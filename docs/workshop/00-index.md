@@ -113,6 +113,11 @@ copilot --resume
 | `/copy` | Copy last response to clipboard |
 | `/ide` | Connect to IDE workspace |
 | `/streamer-mode` | Toggle streamer mode |
+| `/voice` | Manage voice mode (dictation) |
+| `/after` | Schedule a one-shot prompt or skill |
+| `/every` | Schedule a recurring prompt or skill |
+| `/fleet` | Enable fleet mode for parallel subagent execution |
+| `/tasks` | View and manage tasks (subagents and shell commands) |
 
 ## Environment Setup Check
 

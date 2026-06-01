@@ -159,7 +159,7 @@ Type **`/help`** to see them all
 | `@` | Mention files — include as context |
 | `#` | Reference GitHub issues, PRs, discussions |
 | `!` | Run shell commands directly (only way to access shell) |
-| `Shift+Tab` | Cycle between chat ⟷ edit mode |
+| `Shift+Tab` | Cycle between chat → plan → autopilot mode |
 | `Esc` | Cancel current operation |
 | `Double-Esc` | Clear input or trigger undo |
 | `ctrl+t` | Toggle reasoning display |

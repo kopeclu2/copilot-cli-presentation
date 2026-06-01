@@ -90,7 +90,7 @@ copilot --autopilot --no-ask-user --allow-all-tools
 
 Or cycle modes mid-session with `Shift+Tab`:
 ```
-chat → edit → autopilot
+chat → plan → autopilot
 ```
 
 - **Permission elevation** — shows dialog to prevent auto-denied tool errors

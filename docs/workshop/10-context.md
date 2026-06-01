@@ -49,9 +49,23 @@ Context is everything Copilot "remembers" during a session:
 | Claude Opus 4.6 | ~200K tokens |
 
 > [!NOTE]
-> Use `/model` to select a model and `/context` to see context window usage. The model list changes frequently; available models at the time of writing include: claude-sonnet-4.6, claude-opus-4.6, claude-opus-4.6-fast, gpt-5.5, gpt-5.4, gpt-5.2, gpt-4.1, and others.
+> Use `/model` to select a model and `/context` to see context window usage. The model list changes frequently; available models at the time of writing include: claude-sonnet-4.6, claude-opus-4.8, claude-opus-4.6, gpt-5.5, gpt-5.4, gpt-5.2, and others.
 >
 > Model availability may vary by Copilot subscription tier.
+
+### Context Window Tier
+
+You can select a context window tier for tiered-pricing models using the `--context` flag or the `contextTier` config option:
+
+```bash
+# Use long context mode for a session
+copilot --context long_context
+
+# Or set in config.json
+# "contextTier": "long_context"
+```
+
+Available tiers: `"default"` and `"long_context"`. The `/model` command shows a context tier picker for eligible models.
 
 ### Including Files with `@`
 
@@ -523,6 +537,7 @@ Systematic workflow keeps context under control.
 - ✅ Efficient prompting extends useful session length
 - ✅ Explore agent preserves main context
 - ✅ `@` file mentions support absolute, home, and parent paths
+- ✅ `--context` flag and `contextTier` config select context window tier for eligible models
 - ✅ Reasoning token usage shown in per-model breakdown via `/usage`
 
 ## Next Steps

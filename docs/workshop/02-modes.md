@@ -141,7 +141,7 @@ In addition to slash commands, Copilot CLI supports keyboard shortcuts:
 | `ctrl+d` | Exit prompt (no longer queues a message; use `Ctrl+Q` or `Ctrl+Enter` to queue) |
 | `Home` / `End` | Navigate within visual line; jump to top/bottom of scroll buffer |
 | `ctrl+Home` / `ctrl+End` | Jump to text boundaries |
-| `Shift+Tab` | Cycle through modes — (chat) ⟷ (edit) |
+| `Shift+Tab` | Cycle through modes — (chat) → (plan) → (autopilot) |
 | `Shift+Enter` | Insert newline in prompt (requires kitty keyboard protocol) |
 | `Page Up` / `Page Down` | Scroll |
 | `Double-click` | Select word |

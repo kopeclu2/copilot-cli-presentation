@@ -88,7 +88,7 @@ All settings live in `~/.copilot/config.json`:
 }
 ```
 
-Override location: `COPILOT_HOME` env var or `--config-dir` flag
+Override location: `COPILOT_HOME` env var
 
 ---
 
@@ -136,7 +136,7 @@ Override location: `COPILOT_HOME` env var or `--config-dir` flag
 | `--no-custom-instructions` | Skip AGENTS.md |
 | `--screen-reader` | Accessibility mode |
 | `--plain-diff` | Disable rich diffs |
-| `--config-dir` | Override config dir |
+| `--context <tier>` | Context window tier |
 | `--log-dir` / `--log-level` | Logging control |
 | `--plugin-dir` | Load local plugin |
 
@@ -165,7 +165,7 @@ Config options:
     "Sprint 14 ends Friday"
   ],
   "includeCoAuthoredBy": true,
-  "model": "gpt-4.1"
+  "model": "gpt-5.4"
 }
 ```
 
