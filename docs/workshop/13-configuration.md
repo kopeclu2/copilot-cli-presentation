@@ -18,14 +18,15 @@
 
 ### Configuration File Location
 
-Copilot CLI stores its configuration at ~/.copilot/config.json (or the directory specified by COPILOT_HOME). Use --config-dir to specify an alternative directory at startup.
+Copilot CLI stores its configuration at ~/.copilot/config.json (or the directory specified by COPILOT_HOME).
 
 ```bash
 # Override config directory
-copilot --config-dir /path/to/custom/config
+export COPILOT_HOME=/path/to/custom/config
+copilot
 ```
 
-> **Note:** The `--config-dir` flag is respected for model selection — when you specify a custom config directory, the model preference stored in that directory's config.json is used instead of the default.
+> **Note:** The `--config-dir` flag is deprecated. Use the `COPILOT_HOME` environment variable instead. When you specify a custom config directory, the model preference stored in that directory's config.json is used instead of the default.
 
 ### Configuration Options Reference
 
@@ -47,13 +48,18 @@ All options below are set in ~/.copilot/config.json:
   "renderMarkdown": true,
   "screenReader": false,
   "streamerMode": false,
+  "memory": true,
   "includeCoAuthoredBy": true,
   "updateTerminalTitle": true,
+  "terminalProgress": true,
   "logLevel": "default",
   "keepAlive": "off",
   "continueOnAutoMode": false,
   "respectGitignore": true,
   "disableAllHooks": false,
+  "builtInAgents": {
+    "rubberDuck": true
+  },
   "ide": {
     "autoConnect": true,
     "openDiffOnEdit": true
@@ -84,13 +90,16 @@ All options below are set in ~/.copilot/config.json:
 | `renderMarkdown` | bool | `true` | Render markdown formatting in terminal output |
 | `screenReader` | bool | `false` | Enable screen reader optimizations |
 | `streamerMode` | bool | `false` | Hide preview model names and quota details (for streaming/screen sharing) |
+| `memory` | bool | `true` | Enable agentic memory (cross-session fact recall); toggle with `/memory on\|off` |
 | `includeCoAuthoredBy` | bool | `true` | Instruct agent to add Co-authored-by trailer to git commits |
 | `updateTerminalTitle` | bool | `true` | Show current intent in terminal title bar |
+| `terminalProgress` | bool | `true` | Emit terminal progress indicators (OSC 9;4) while agent is working |
 | `logLevel` | string | `"default"` | Log level: `"none"`, `"error"`, `"warning"`, `"info"`, `"debug"`, `"all"` |
 | `keepAlive` | string | `"off"` | Prevent system sleep: `"off"`, `"on"`, or `"busy"` (busy = only while agent is working) |
 | `continueOnAutoMode` | bool | `false` | Auto-switch to auto mode on rate limit errors; does not apply to global limits |
 | `respectGitignore` | bool | `true` | Exclude gitignored files from the `@` file mention picker |
 | `disableAllHooks` | bool | `false` | Disable all hooks (repo-level and user-level) |
+| `builtInAgents.rubberDuck` | bool | `true` | Enable the rubber-duck subagent for adversarial feedback |
 | `ide.autoConnect` | bool | `true` | Auto-connect to IDE workspace on startup |
 | `ide.openDiffOnEdit` | bool | `true` | Open file edit diffs in connected IDE for approval |
 | `customAgents.defaultLocalOnly` | bool | `false` | Default to local agents only (skip remote org/enterprise agents) |
@@ -145,6 +154,7 @@ All options below are set in ~/.copilot/config.json:
 | `--model <model>` | Set AI model |
 | `--reasoning-effort <level>` | Set reasoning effort level for model |
 | `--effort <level>` | Shorthand for `--reasoning-effort` |
+| `--context <tier>` | Set context window tier (`default` or `long_context`) |
 | `--binary-version` | Query CLI binary version without launching |
 | `--enable-reasoning-summaries` | Request reasoning summaries for OpenAI models |
 | `--connect[=sessionId]` | Connect directly to a remote session |
@@ -186,7 +196,7 @@ This displays documentation on configuring OpenTelemetry for Copilot CLI observa
 | `--available-tools [tools...]` | Only these tools visible to model |
 | `--excluded-tools [tools...]` | These tools hidden from model |
 | `--autopilot` | Enable autopilot mode |
-| `--max-autopilot-continues <n>` | Limit autopilot rounds |
+| `--max-autopilot-continues <n>` | Limit autopilot rounds (default: 5) |
 | `--no-ask-user` | Disable agent questions |
 | `--agent <agent>` | Use a specific custom agent |
 | `--additional-mcp-config <json>` | Add MCP config (repeatable) |
@@ -203,7 +213,7 @@ This displays documentation on configuring OpenTelemetry for Copilot CLI observa
 | `--acp` | Start as Agent Client Protocol server |
 | `--share [path]` | Export session to markdown file |
 | `--share-gist` | Export session to GitHub Gist |
-| `--config-dir <directory>` | Override config directory |
+| `--attachment <path>` | Attach a file (image or document) to prompt; non-interactive only (repeatable) |
 | `--log-dir <directory>` | Set log file directory |
 | `--log-level <level>` | Set log level |
 | `--banner` | Show startup banner |
@@ -273,7 +283,7 @@ You can view, modify, and verify config options and understand that certain CLI 
 2. Set the default model via environment:
 
    ```bash
-   export COPILOT_MODEL=gpt-4.1
+   export COPILOT_MODEL=gpt-5.4
    copilot -p "What model are you using?"
    ```
 
@@ -405,7 +415,7 @@ You can configure Copilot for streaming, screen readers, and plain-text environm
 
    ```json
    {
-     "model": "gpt-4.1",
+     "model": "gpt-5.4",
      "includeCoAuthoredBy": true,
      "compactPaste": true,
      "updateTerminalTitle": true,
@@ -481,11 +491,14 @@ You can enable detailed logging and understand the log directory structure.
 - ✅ `COPILOT_CUSTOM_INSTRUCTIONS_DIRS` adds extra instruction search paths
 - ✅ `--log-dir` and `--log-level` enable debugging
 - ✅ `--screen-reader`, `--no-color`, `--plain-diff` for accessibility
+- ✅ `memory` config enables cross-session fact recall; toggle with `/memory on|off`
+- ✅ `terminalProgress` shows progress indicators in terminal title bar
+- ✅ `builtInAgents.rubberDuck` enables adversarial feedback subagent
 - ✅ Proxy support via `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` environment variables
 - ✅ `--reasoning-effort` flag controls model reasoning level
 - ✅ `--binary-version` checks installed version without launching
 - ✅ `/env` command shows loaded environment details
-- ✅ `--config-dir` respected for model selection
+- ✅ `COPILOT_HOME` overrides config directory (`--config-dir` is deprecated)
 - ✅ `copilot help monitoring` documents OpenTelemetry configuration
 - ✅ `keepAlive` prevents system sleep (off/on/busy)
 - ✅ `continueOnAutoMode` auto-switches to auto mode on rate limits

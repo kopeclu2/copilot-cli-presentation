@@ -706,7 +706,7 @@ description: What this agent does # Required, max 1024 chars
 ---
 name: agent-name
 description: Description
-model: gpt-4.1 # Optional: specify AI model (display names and vendor suffixes accepted)
+model: gpt-5.4 # Optional: specify AI model (display names and vendor suffixes accepted)
 tools: # Optional, defaults to all
  - shell
  - write

@@ -321,7 +321,7 @@ Copilot CLI integrated into automated workflows.
 
  ```bash
  # Use specific model
- copilot --model gpt-4.1
+ copilot --model gpt-5.4
 
  # Use faster model for simple tasks
  copilot --model gpt-5-mini -p "What time is it?"
@@ -399,7 +399,7 @@ Full command-line control over Copilot behavior.
  copilot --autopilot
 
  # Or use Shift+Tab to cycle modes in an active session
- # (chat → edit → autopilot)
+ # (chat → plan → autopilot)
  ```
 
  > **Permission elevation:** When accepting a plan with autopilot, Copilot shows a permission elevation dialog to prevent auto-denied tool errors during autonomous execution.
@@ -432,7 +432,7 @@ Full command-line control over Copilot behavior.
 
 6. **Switch out of Autopilot mid-session:**
 
- Use `Shift+Tab` to cycle back to chat or edit mode, or press `Esc` to interrupt the current autonomous operation.
+ Use `Shift+Tab` to cycle back to chat or plan mode, or press `Esc` to interrupt the current autonomous operation.
 
  ```
  # Now you'll be prompted for approval on each action
@@ -441,7 +441,7 @@ Full command-line control over Copilot behavior.
 7. **Limit autopilot continuation rounds:**
 
  ```bash
- # Limit to 10 continuation rounds (default: unlimited)
+ # Limit to 10 continuation rounds (default: 5)
  copilot --autopilot --max-autopilot-continues 10 -p "Refactor all API endpoints"
  ```
 
@@ -635,16 +635,16 @@ Complex tasks are completed faster through parallel sub-agent execution with qua
 
  > **Important**: shell mode is no longer accessible via Shift+Tab cycling.
 
- **Old behavior:**
+ **Shell mode is not part of the Shift+Tab cycle.** Instead:
 
  ```
- Shift+Tab: cycle through (chat) → (edit) → (shell)
+ Shift+Tab: cycle through (chat) → (plan) → (autopilot)
  ```
 
- **New behavior:**
+ **Shell mode access:**
 
  ```
- Shift+Tab: cycle through (chat) ⟷ (edit) only
+ Shift+Tab: cycle through (chat) → (plan) → (autopilot)
  ! (exclamation): direct access to shell mode
  ```
 
@@ -826,7 +826,7 @@ Language server timeouts are configured for your environment, eliminating timeou
  "/home/user/projects",
  "/home/user/work"
  ],
- "model": "gpt-4.1",
+ "model": "gpt-5.4",
  "theme": "dark",
  "autoUpdate": true
  }
@@ -1058,7 +1058,7 @@ Team-wide standardization on Copilot usage, including shared LSP and environment
  copilot --model gpt-5-mini -p "Format this JSON"
 
  # Full model for complex analysis
- copilot --model gpt-4.1 -p "Refactor this complex module"
+ copilot --model gpt-5.4 -p "Refactor this complex module"
  ```
 
 4. **Efficient context management:**
@@ -1201,7 +1201,7 @@ You can run deep-research workflows and extract insights from your session histo
 | `--share-gist` | Export to Gist |
 | `--additional-mcp-config` | Add MCP config |
 | `--autopilot` | Enable autonomous multi-step execution |
-| `--max-autopilot-continues` | Limit autopilot continuation rounds |
+| `--max-autopilot-continues` | Limit autopilot continuation rounds (default: 5) |
 | `--no-ask-user` | Disable agent questions (fully autonomous) |
 | `--acp` | Start as Agent Client Protocol server |
 | `--stream` | Enable/disable streaming (on/off) |
@@ -1227,7 +1227,7 @@ You can run deep-research workflows and extract insights from your session histo
 | `/review` | Run code review agent |
 | `/delegate` | Hand off to cloud agent |
 | `/fleet` | Launch parallel sub-agents for complex tasks |
-| `Shift+Tab` | Cycle through chat / edit / autopilot modes |
+| `Shift+Tab` | Cycle through chat / plan / autopilot modes |
 | `/research` | Launch deep-research workflow with exportable reports |
 | `/chronicle` | Session-history insights (standup, tips, improve) — experimental |
 | `/diagnose` | Show diagnostic summary of session and environment |
@@ -1248,7 +1248,7 @@ You can run deep-research workflows and extract insights from your session histo
 | Method | Description |
 | -------- | ------------- |
 | `!` | Direct access to shell mode |
-| `Shift+Tab` | Cycle (chat) ⟷ (edit) only |
+| `Shift+Tab` | Cycle (chat) → (plan) → (autopilot) |
 
 ### Useful Aliases
 
@@ -1291,7 +1291,7 @@ alias cop-resume='copilot --resume'
 - ✅ **`--effort` flag** shorthand for `--reasoning-effort`
 - ✅ **Monorepo support** discovers instructions, MCPs, skills, and agents from cwd to git root
 - ✅ **`/diagnose` command** for troubleshooting session and environment issues
-- ✅ **`--max-autopilot-continues`** limits autopilot continuation rounds
+- ✅ **`--max-autopilot-continues`** limits autopilot continuation rounds (default: 5)
 - ✅ **`--no-ask-user`** enables fully autonomous operation without questions
 - ✅ **`--acp`** starts Agent Client Protocol server
 - ✅ **`--output-format json`** enables JSONL output for scripting
