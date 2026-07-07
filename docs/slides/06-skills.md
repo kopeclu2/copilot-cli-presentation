@@ -114,11 +114,19 @@ description: Generates API documentation from source code
 | Location | Scope | Use case |
 |----------|-------|----------|
 | `.github/skills/` | This project | Project-specific skills |
+| `.agents/skills/` | This project | Shared agent-skill layout |
+| `.claude/skills/` | This project | Cross-client skill layout |
 | `~/.copilot/skills/` | All projects | Personal workflow skills |
+| `~/.agents/skills/` | All projects | Personal shared skills |
+| Plugins | Plugin scope | Bundled skills |
 
 **Project skills** take priority over **personal skills**
 
-> Community skills available at [agentskills.io](https://agentskills.io)
+```bash
+copilot skill add --project ./my-skill/SKILL.md
+copilot skill add https://example.com/my-skill/SKILL.md
+copilot skill list --json
+```
 
 ---
 
@@ -136,4 +144,3 @@ Open **Module 6** in `docs/workshop/06-skills.md`
 - **Exercise 6** — Skill invocation
 
 ⏱️ You have **~16 minutes**
-

@@ -71,21 +71,21 @@ The `read_agent` output includes inbound messages that triggered each turn in mu
 
 #### Monorepo Support
 
-Custom instructions, MCP servers, skills, and agents are now discovered at every directory level from the working directory up to the git root, enabling full monorepo support.
+Custom instructions, MCP servers, skills, and agents are discovered at every directory level from the working directory up to the git root, enabling full monorepo support.
 
 #### `--effort` Shorthand
 
 Use `--effort` as a shorthand alias for `--reasoning-effort` to control model reasoning level.
 
-#### `--resume` Enhancements
+#### Resume Controls
 
-`--resume` now accepts a task ID in addition to a session ID.
+`--resume` accepts a session ID, task ID, ID prefix, or session name. Use `--continue` to resume the most recent session directly.
 
 #### Remote Control Sessions
 
-> The former "steering" feature has been renamed to **remote control**. Use the `--remote` flag or `/remote` command to start a remote control session:
+Use the `--remote` flag or `/remote` command to start a remote control session:
 >
-> ```bash
+> ```text
 > # Start Copilot with remote control enabled
 > copilot --remote
 >
@@ -97,13 +97,13 @@ Use `--effort` as a shorthand alias for `--reasoning-effort` to control model re
 
 #### ACP Clients Provide MCP Servers
 
-> ACP (Agent Client Protocol) clients can now provide MCP servers when starting or loading sessions. This enables IDE integrations to inject MCP server configurations into CLI sessions dynamically.
+> ACP (Agent Client Protocol) clients can provide MCP servers when starting or loading sessions. This enables IDE integrations to inject MCP server configurations into CLI sessions dynamically.
 
 #### `copilot help monitoring`
 
 > The new `copilot help monitoring` topic documents how to configure OpenTelemetry for observability:
 >
-> ```bash
+> ```text
 > copilot help monitoring
 > ```
 >
@@ -112,7 +112,7 @@ Use `--effort` as a shorthand alias for `--reasoning-effort` to control model re
 #### OpenTelemetry Monitoring Enhancements
 
 > OpenTelemetry monitoring has been expanded:
-> - Sub-agent spans are now tagged as `INTERNAL` spans for better trace visualization
+> - Sub-agent spans are tagged as `INTERNAL` spans for better trace visualization
 > - `time_to_first_chunk` metric tracks latency from request to first streaming chunk
 > - Improved span attributes for debugging agent behavior and performance
 
@@ -120,10 +120,10 @@ Use `--effort` as a shorthand alias for `--reasoning-effort` to control model re
 
 > Copilot CLI supports Bring Your Own Key (BYOK) mode for using custom model providers. Set `COPILOT_PROVIDER_BASE_URL` to activate BYOK mode. GitHub authentication is not required when using a custom provider.
 >
-> ```bash
+> ```text
 > # Ollama (local, no API key required)
 > COPILOT_PROVIDER_BASE_URL=http://localhost:11434/v1 \
->   COPILOT_MODEL=deepseek-coder-v2:16b \
+>   COPILOT_MODEL=local-code-model \
 >   copilot
 > ```
 >
@@ -168,14 +168,14 @@ Use `--effort` as a shorthand alias for `--reasoning-effort` to control model re
  # Set custom config directory
  export COPILOT_HOME=/custom/path
 
- # Copilot will now use /custom/path/
+ # Copilot uses /custom/path/
  copilot
  ```
 
 2. **GITHUB_TOKEN** - Authentication for CI/CD:
 
  ```bash
- export GITHUB_TOKEN="ghp_your_personal_access_token"
+ export COPILOT_GITHUB_TOKEN="github_pat_your_personal_access_token"
 
  # Use in scripts
  copilot -p "Run the test suite" --allow-tool 'shell'
@@ -194,7 +194,7 @@ Use `--effort` as a shorthand alias for `--reasoning-effort` to control model re
  copilot --help | head -50
  ```
 
- > **Note:** `copilot --help` now shows comprehensive output with descriptions, examples, and sorted flags.
+ > **Note:** `copilot --help` shows comprehensive output with descriptions, examples, and sorted flags.
 
 **Expected Outcome:**
 Environment variables customize Copilot behavior.
@@ -219,12 +219,8 @@ Environment variables customize Copilot behavior.
  review:
  runs-on: ubuntu-latest
  steps:
- - uses: actions/checkout@v4
-
- - name: Setup Node.js
- uses: actions/setup-node@v4
- with:
- node-version: '22'
+ - name: Checkout repository
+ run: git checkout "$GITHUB_SHA"
 
  - name: Install Copilot CLI
  run: npm install -g @github/copilot
@@ -260,7 +256,7 @@ Environment variables customize Copilot behavior.
 3. **Docker container usage:**
 
  ```dockerfile
- FROM node:22-slim
+ FROM node:lts-slim
 
  RUN npm install -g @github/copilot
 
@@ -320,11 +316,11 @@ Copilot CLI integrated into automated workflows.
 3. **Model selection:**
 
  ```bash
- # Use specific model
- copilot --model gpt-5.4
+ # Use automatic model selection
+ copilot --model auto
 
- # Use faster model for simple tasks
- copilot --model gpt-5-mini -p "What time is it?"
+ # Set a model for a simple task
+ copilot --model auto -p "What time is it?"
  ```
 
 4. **Session control:**
@@ -334,7 +330,8 @@ Copilot CLI integrated into automated workflows.
  copilot --resume
 
  # Use additional MCP config temporarily
- copilot --additional-mcp-config ./custom-mcp.json
+ printf '{"mcpServers":{}}' > custom-mcp.json
+ copilot --additional-mcp-config @./custom-mcp.json
  ```
 
 5. **Output and streaming control:**
@@ -404,7 +401,7 @@ Full command-line control over Copilot behavior.
 
  > **Permission elevation:** When accepting a plan with autopilot, Copilot shows a permission elevation dialog to prevent auto-denied tool errors during autonomous execution.
 
- > **Plan approval menu:** Plan approval now shows model-curated actions with a recommended option highlighted, including an **autopilot+fleet** option for parallelizable work.
+ > **Plan approval menu:** Plan approval shows model-curated actions with a recommended option highlighted, including an **autopilot+fleet** option for parallelizable work.
 
 4. **Example: Set up a new Express.js API:**
 
@@ -532,9 +529,6 @@ Copilot autonomously completes multi-step tasks with minimal human intervention.
 
  ```bash
  # Fleet automatically maximizes parallelism
- # Previously: Sequential sub-agent execution
- # Current behavior: More sub-agents run simultaneously
-
  /fleet "Generate API routes, database models, and tests for User, Product, Order entities"
 
  # Fleet might dispatch:
@@ -626,7 +620,7 @@ Complex tasks are completed faster through parallel sub-agent execution with qua
  export API_KEY=${SECURE_API_KEY}
 
  # Start Copilot
- copilot --bash-env -p "Run the database migration script"
+ copilot --bash-env -p "Run the database change script"
 
  # Copilot's shell commands will have access to DB_HOST, DB_PORT, etc.
  ```
@@ -826,7 +820,7 @@ Language server timeouts are configured for your environment, eliminating timeou
  "/home/user/projects",
  "/home/user/work"
  ],
- "model": "gpt-5.4",
+ "model": "auto",
  "theme": "dark",
  "autoUpdate": true
  }
@@ -880,7 +874,7 @@ Custom configuration for your workflow, including LSP settings from Exercise 7.
 
  # Verify MCP servers
  copilot
- /mcp show
+ /mcp
  ```
 
 3. **Session issues:**
@@ -914,8 +908,8 @@ Custom configuration for your workflow, including LSP settings from Exercise 7.
  # Verify agent file exists
  ls -la .github/agents/
 
- # Check YAML syntax
- cat .github/agents/my-agent.md | head -10
+ # Check YAML frontmatter syntax for available agents
+ find .github/agents -maxdepth 1 -name '*.agent.md' -print
 
  # Ensure frontmatter is valid
  ```
@@ -966,7 +960,6 @@ You can diagnose and resolve common problems using `/diagnose`, LSP timeout tuni
  └── hooks.json # Security guardrails
 
  AGENTS.md # Project-specific agent
- llm.txt # Project context for LLMs
  ```
 
 2. **Create onboarding documentation:**
@@ -1054,11 +1047,11 @@ Team-wide standardization on Copilot usage, including shared LSP and environment
 3. **Choose appropriate models:**
 
  ```bash
- # Fast model for simple tasks
- copilot --model gpt-5-mini -p "Format this JSON"
+ # Automatic model selection for simple tasks
+ copilot --model auto -p "Format this JSON"
 
- # Full model for complex analysis
- copilot --model gpt-5.4 -p "Refactor this complex module"
+ # Choose an appropriate model for complex analysis from /model or copilot help config
+ copilot --model auto -p "Refactor this complex module"
  ```
 
 4. **Efficient context management:**
@@ -1084,7 +1077,7 @@ Team-wide standardization on Copilot usage, including shared LSP and environment
  ```bash
  # Faster than sequential processing
  copilot
- /fleet "Migrate all 50 components to the new API format"
+ /fleet "Update all 50 components to the API format"
 
  # Multiple agents work in parallel
  ```
@@ -1137,7 +1130,7 @@ Maximum performance from Copilot CLI using parallelization, autopilot, and fleet
 
  ```bash
  copilot --allow-tool 'web_fetch' --deny-tool 'write'
- /research "What are the latest best practices for Node.js error handling?"
+ /research "What are current best practices for Node.js error handling?"
 
  # Read-only research — Copilot can fetch web content but won't modify files
  ```
@@ -1175,14 +1168,14 @@ You can run deep-research workflows and extract insights from your session histo
 
 ### Configuration Files
 
-| File | Purpose | Version Added |
-| ------ | --------- | --------------- |
-| `~/.copilot/config.json` | User settings | Base |
-| `~/.copilot/mcp-config.json` | MCP servers | Base |
-| `~/.copilot/lsp.json` | LSP timeout configuration | |
-| `~/.copilot/skills/` | Personal skills | Base |
-| `~/.agents/skills/` | Personal skill discovery (shared with VS Code) | |
-| `.github/copilot-instructions.md` | Repository instructions | Base |
+| File | Purpose |
+| ------ | --------- |
+| `~/.copilot/config.json` | User settings |
+| `~/.copilot/mcp-config.json` | MCP servers |
+| `~/.copilot/lsp.json` | LSP timeout configuration |
+| `~/.copilot/skills/` | Personal skills |
+| `~/.agents/skills/` | Personal skill discovery (shared with VS Code) |
+| `.github/copilot-instructions.md` | Repository instructions |
 
 ### Key Command-Line Flags
 
@@ -1192,6 +1185,7 @@ You can run deep-research workflows and extract insights from your session histo
 | `-i, --interactive` | Interactive mode with auto-executed prompt |
 | `--model` | Select AI model |
 | `--resume` | Resume last session (accepts session ID or task ID) |
+| `--continue` | Resume the most recent session |
 | `--yolo` / `--allow-all` | Allow all tools, paths, and URLs |
 | `--allow-tool` / `--deny-tool` | Allow/deny specific tools |
 | `--allow-url` / `--deny-url` | Allow/deny specific URLs |
@@ -1199,7 +1193,15 @@ You can run deep-research workflows and extract insights from your session histo
 | `--output-format` | Output as `text` or `json` (JSONL) |
 | `--share PATH` | Export to markdown |
 | `--share-gist` | Export to Gist |
-| `--additional-mcp-config` | Add MCP config |
+| `--additional-mcp-config` | Add MCP config as inline JSON or an `@`-prefixed file path |
+| `--max-ai-credits` | Set a session AI credit limit |
+| `--session-id` | Resume an existing session/task by ID or set a new session UUID |
+| `--remote-export` | Export a read-only session to GitHub web and mobile |
+| `--no-remote` | Disable remote control |
+| `--no-remote-export` | Disable remote export |
+| `--enable-memory` | Enable memory in prompt mode |
+| `--allow-all-mcp-server-instructions` | Include initialization instructions from all MCP servers |
+| `--no-bash-env` | Disable BASH_ENV support |
 | `--autopilot` | Enable autonomous multi-step execution |
 | `--max-autopilot-continues` | Limit autopilot continuation rounds (default: 5) |
 | `--no-ask-user` | Disable agent questions (fully autonomous) |
@@ -1225,25 +1227,28 @@ You can run deep-research workflows and extract insights from your session histo
 | `/compact` | Compress session history |
 | `/plan` | Create implementation plan |
 | `/review` | Run code review agent |
+| `/security-review` | Analyze staged and unstaged changes for security vulnerabilities |
 | `/delegate` | Hand off to cloud agent |
 | `/fleet` | Launch parallel sub-agents for complex tasks |
+| `/autopilot` | Toggle autopilot mode |
+| `/after` | Schedule a one-shot prompt or skill |
+| `/every` | Schedule a recurring prompt or skill |
+| `/limits` | View or edit session limits |
+| `/statusline` | Configure status line items |
+| `/subagents` | Configure default and per-agent subagent models |
 | `Shift+Tab` | Cycle through chat / plan / autopilot modes |
 | `/research` | Launch deep-research workflow with exportable reports |
 | `/chronicle` | Session-history insights (standup, tips, improve) — experimental |
 | `/diagnose` | Show diagnostic summary of session and environment |
-| `/undo` | Undo last turn and revert file changes |
+| `/undo` | Undo the last turn when possible |
 | `/rewind` | Timeline picker to roll back to any point (also double-Esc) |
 | `/copy` | Copy last response to clipboard |
 | `/ide` | Connect to IDE workspace |
-| `/streamer-mode` | Toggle streamer mode |
 | `/mcp` | Manage MCP servers |
-| `/mcp auth` | Re-authenticate MCP OAuth servers |
 | `/share html` | Export session as interactive HTML |
 | `/allow-all [on\|off\|show]` | Enable, disable, or check allow-all mode |
 
 ### Shell Mode Access
-
-> **Changed**: Shell mode removed from Shift+Tab cycle
 
 | Method | Description |
 | -------- | ------------- |
@@ -1297,7 +1302,7 @@ alias cop-resume='copilot --resume'
 - ✅ **`--output-format json`** enables JSONL output for scripting
 - ✅ **`--stream`** controls streaming mode
 - ✅ **`-i, --interactive`** starts interactive mode with auto-executed prompt
-- ✅ **Remote control sessions** via `--remote` or `/remote` (replaces "steering")
+- ✅ **Remote control sessions** via `--remote` or `/remote`
 - ✅ **ACP clients** can provide MCP servers when starting/loading sessions
 - ✅ **`copilot help monitoring`** documents OpenTelemetry configuration
 - ✅ **OpenTelemetry enhancements** — sub-agent INTERNAL spans, `time_to_first_chunk` metric

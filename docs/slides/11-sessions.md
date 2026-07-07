@@ -91,10 +91,12 @@ copilot    prompts + tools    /exit or Ctrl+C
 | `/session` | Show session info (ID, duration, files) |
 | `/usage` | Token consumption and API calls |
 | `/rename NAME` | Name your session for easy finding |
-| `/clear` | Wipe conversation history |
+| `/clear` | Abandon session and start fresh |
 | `/resume` | Switch to a previous session |
-| `--resume` | Resume last session from CLI |
+| `--continue` | Resume most recent session from CLI |
 | `/share` | Export to markdown or GitHub Gist |
+| `/undo` | Undo last turn when possible |
+| `/rewind` | Roll back through session timeline |
 
 ---
 
@@ -145,4 +147,3 @@ Open **Module 11** in `docs/workshop/11-sessions.md`
 - **Exercise 7** — Export & sharing
 
 ⏱️ You have **~12 minutes**
-

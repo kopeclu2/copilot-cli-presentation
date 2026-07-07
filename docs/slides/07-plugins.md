@@ -63,15 +63,15 @@ style: |
 
 ```
 ┌─────────────────────┐
-│ Copilot CLI │
+│ Copilot CLI         │
 ├─────────────────────┤
-│ Built-in Tools │ shell, read, write
+│ Built-in Tools      │ shell, read, write
 ├─────────────────────┤
-│ MCP Servers │ Module 6
+│ MCP Servers         │ Module 5
 ├─────────────────────┤
-│ Skills │ Module 7
+│ Skills              │ Module 6
 ├─────────────────────┤
-│ Plugins │ ← This module
+│ Plugins             │ ← This module
 └─────────────────────┘
 ```
 
@@ -84,59 +84,54 @@ Plugins = **packaged integrations** from the ecosystem
 | Source | What you'll find |
 |--------|-----------------|
 | **github/copilot-plugins** | Official GitHub plugins |
-| **microsoft/work-iq-mcp** | Enterprise (M365, Azure) |
-| **npm** | Community MCP servers |
-| **Custom** | Your own integrations |
+| **github/awesome-copilot** | Community plugins |
+| **GitHub repos** | Direct `owner/repo` installs |
+| **Repo subdirectories** | `owner/repo:path` plugin layouts |
+| **Git URLs** | Direct git install sources |
 
 ```bash
 # Search for available plugins
-npm search @modelcontextprotocol
-npm search mcp-server
+copilot plugin marketplace list
+copilot plugin marketplace browse copilot-plugins
 ```
+
+Inside a session, use `/plugin` for interactive marketplace browsing and plugin management.
 
 ---
 
 ## Installing a Plugin
 
-Plugins are configured as **MCP servers** in `~/.copilot/mcp-config.json`
+Plugins can bundle **skills, agents, hooks, MCP servers, and LSP servers**
 
-```json
-{
- "mcpServers": {
- "brave-search": {
- "type": "local",
- "command": "npx",
- "args": ["-y", "@anthropic/mcp-server-brave-search"],
- "env": {
- "BRAVE_API_KEY": "${BRAVE_API_KEY}"
- }
- }
- }
-}
+```bash
+# From a marketplace in a session
+/plugin install workiq@copilot-plugins
+
+# From a marketplace in shell
+copilot plugin install workiq@copilot-plugins
+
+# From GitHub
+copilot plugin install owner/repo
+copilot plugin install owner/repo:plugins/my-plugin
+
+# From a git URL
+copilot plugin install https://github.com/owner/my-plugin.git
 ```
 
-> Always use `${ENV_VAR}` for secrets — never hardcode
+> Audit plugin source and permission needs before installing
 
 ---
 
-## Remote Plugin Sources
+## Plugin Maintenance
 
-```json
-{
- "mcpServers": {
- "remote-plugin": {
- "url": "https://plugin-server.example.com/mcp/",
- "requestInit": {
- "headers": {
- "Authorization": "Bearer ${TOKEN}"
- }
- }
- }
- }
-}
+```bash
+copilot plugin list
+copilot plugin update
+copilot plugin uninstall workiq
+copilot plugin marketplace update
 ```
 
-> Remote sources reference GitHub repos and git URLs via `marketplace.json`
+> Use `--plugin-dir /path/to/plugin` for local plugin development
 
 ---
 
@@ -144,11 +139,11 @@ Plugins are configured as **MCP servers** in `~/.copilot/mcp-config.json`
 
 Before installing any plugin:
 
-- ✅ Source code is **open and auditable**
-- ✅ Actively maintained
-- ✅ Minimal dependencies
-- ✅ No known vulnerabilities (`npm audit`)
-- ✅ Clear permission requirements
+- Source code is **open and auditable**
+- Actively maintained
+- Minimal dependencies
+- No known vulnerabilities
+- Clear permission requirements
 
 ```bash
 # Restrict plugin capabilities
@@ -157,21 +152,18 @@ copilot --allow-tool 'plugin-name' --deny-tool 'shell(rm)'
 
 ---
 
-## Extensions & Open Plugins
+## Plugin Capabilities
 
-- **Extensions** (experimental) — Copilot writes custom tools at runtime via `@github/copilot-sdk`
-- **`/extensions`** command to view, enable, disable extensions
-- Extension tools integrate with **permissions system** (`skipPermission` per-tool)
-- **Open Plugins spec** support:
-  - `.lsp.json` manifests, PascalCase events, `exclusive` path mode
-  - Cross-platform compatibility with VS Code and Claude Code
-- **`copilot plugin marketplace update`** — Refresh catalogs
-- **`PLUGIN_ROOT` env vars** in plugin hooks
-- **Post-install messages** displayed after `/plugin install`
+- **Skills** — reusable instructions
+- **Agents** — specialized personas
+- **Hooks** — lifecycle automation
+- **MCP servers** — tools and resources
+- **LSP servers** — code intelligence
+- **Marketplace catalogs** — discoverable plugin listings
 
 ---
 
-## Your Turn! 🚀
+## Your Turn!
 
 Open **Module 7** in `docs/workshop/07-plugins.md`
 
@@ -185,5 +177,4 @@ Open **Module 7** in `docs/workshop/07-plugins.md`
 - **Exercise 6** — Plugin security review
 - **Exercise 7** — Plugin discovery
 
-⏱️ You have **~12 minutes**
-
+Timebox: **~12 minutes**

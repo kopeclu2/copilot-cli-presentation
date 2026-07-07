@@ -82,7 +82,7 @@ Connect Copilot to: databases, APIs, file systems, search, Slack, and more
 | **Remote** | `http` / `sse` | Hosted externally | Cloud APIs, team services |
 | **Local** | `local` / `stdio` | Your machine | Memory, filesystem, Postgres |
 
-> `local` = `stdio`, `http` = streamable HTTP, `sse` = legacy SSE (deprecated)
+> `copilot mcp add` uses `stdio`, `http`, and `sse` transport names
 
 ---
 
@@ -107,7 +107,7 @@ Lives at **`~/.copilot/mcp-config.json`**
 Optional: `"tools": ["*"]` (default), `"env": {}`, `"headers": {}`
 
 > Server names support npm-style identifiers like `@modelcontextprotocol/server`
-> Env vars in `command`/`args`/`cwd` are auto-inherited from your shell
+> Workspace config can live in `.mcp.json` or `.github/mcp.json`
 
 ---
 
@@ -148,19 +148,18 @@ Full list: [github.com/modelcontextprotocol/servers](https://github.com/modelcon
 
 ## Managing MCP Servers
 
-All from inside a Copilot session:
+Use shell commands or the interactive `/mcp` view:
 
 | Command | Action |
 |---------|--------|
-| `/mcp show` | List all servers (grouped by source) |
-| `/mcp show NAME` | View details and tools for a specific server |
-| `/mcp add` | Interactive setup (available immediately) |
-| `/mcp edit NAME` | Edit an existing server |
-| `/mcp delete NAME` | Remove a server |
-| `/mcp reload` | Reload config without restart |
-| `/mcp disable/enable` | Toggle server on/off |
+| `copilot mcp list` | List configured servers |
+| `copilot mcp get NAME` | View server details |
+| `copilot mcp add NAME -- COMMAND` | Add local stdio server |
+| `copilot mcp add --transport http NAME URL` | Add remote HTTP server |
+| `copilot mcp remove NAME` | Remove a server |
+| `/mcp` | Open interactive MCP view |
 
-> Use `--additional-mcp-config "$(cat file.json)"` for session-only servers
+> Use `--additional-mcp-config @file.json` for session-only servers
 
 ---
 
@@ -181,27 +180,23 @@ copilot --disable-mcp-server "my-server"
 
 ---
 
-## DevContainer MCP Config
+## Workspace MCP Config
 
-MCP servers can be pre-configured in `.devcontainer/devcontainer.json`:
+MCP servers can be pre-configured in `.mcp.json` or `.github/mcp.json`:
 
 ```json
 {
-  "customizations": {
-    "copilot": {
-      "mcpServers": {
-        "memory": {
-          "type": "local",
-          "command": "npx",
-          "args": ["-y", "@modelcontextprotocol/server-memory"]
-        }
-      }
+  "mcpServers": {
+    "memory": {
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
     }
   }
 }
 ```
 
-Merged with personal `~/.copilot/mcp-config.json` automatically
+Merged with personal and plugin MCP configuration automatically
 
 ---
 
@@ -220,4 +215,3 @@ Open **Module 5** in `docs/workshop/05-mcps.md`
 - **Exercise 7** — Temporary MCP config
 
 ⏱️ You have **~12 minutes**
-

@@ -80,7 +80,7 @@ Create with **`/agent`** slash command or manually
 ---
 name: test-agent
 description: Writes tests following TDD principles
-model: claude-sonnet-4.6 # optional
+model: auto # optional
 tools: # optional (default = all)
  - shell
  - read
@@ -121,6 +121,9 @@ Invoked automatically — not listed in `/agent` menu
 | **Task** | Run commands smartly | Command execution prompts |
 | **Plan** | Implementation planning | Planning prompts |
 | **Code-review** | High-signal reviews | Review prompts |
+| **Research** | Deep investigations | `/research` |
+| **Fleet** | Parallel subagent orchestration | `/fleet` |
+| **Rubber-duck** | Critique plans and implementations | Feedback prompts |
 
 ---
 
@@ -172,4 +175,3 @@ Open **Module 8** in `docs/workshop/08-custom-agents.md`
 - **Exercise 7** — Debugging agent config
 
 ⏱️ You have **~8 minutes**
-

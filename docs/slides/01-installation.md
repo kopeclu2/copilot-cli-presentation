@@ -64,7 +64,7 @@ style: |
 - **GitHub account** with active Copilot subscription
   - Pro, Pro+, Business, or Enterprise
 - **Terminal access** (macOS, Linux, or Windows)
-- For npm method: **Node.js v22+** and **npm v10+**
+- For npm method: **current Node.js LTS** and **npm**
 
 ---
 
@@ -78,8 +78,7 @@ style: |
 | WinGet | `winget install GitHub.Copilot` | Windows |
 | Dev Container | Built-in | Codespaces |
 
-> 🎉 Copilot CLI is **Generally Available**
-> 💡 Already installed? `copilot update` — now replaces the full binary
+> 💡 Already installed? `copilot update` checks for and installs updates
 
 ---
 
@@ -90,7 +89,7 @@ style: |
 copilot
 
 # Or use a token (CI/CD, containers)
-export GITHUB_TOKEN="ghp_your_token"
+export COPILOT_GITHUB_TOKEN="github_pat_your_token"
 copilot
 ```
 
@@ -119,17 +118,17 @@ copilot
 
 ---
 
-## Version & Changelog
+## Version & Updates
 
 ```bash
 # Check binary version without launching
-copilot --binary-version
+copilot --version
+
+# Check for updates
+copilot version
 
 # Inside a session:
-/version        # Version + update check
-/changelog      # Latest release notes
-/changelog last 5            # Last 5 releases
-/changelog summarize         # AI summary
+/version
 ```
 
 ---
@@ -143,4 +142,3 @@ Open **Module 1** in `docs/workshop/01-installation.md`
 3. **Exercise 3** — Verify with your first prompt
 
 ⏱️ You have **~12 minutes**
-

@@ -1,9 +1,9 @@
 # GitHub Copilot CLI — Deep-Dive Workshop
 
-[![Copilot CLI version](https://img.shields.io/badge/Copilot%20CLI-v1.0.57--5-blue?logo=github)](https://github.com/github/copilot-cli/releases/tag/v1.0.57-5)
+[![Copilot CLI version](https://img.shields.io/badge/Copilot%20CLI-v1.0.69--1-blue?logo=github)](https://github.com/github/copilot-cli/releases/tag/v1.0.69-1)
 [![APS version](https://img.shields.io/badge/APS-v1.2.1-blue?logo=github)](https://github.com/chris-buckley/agnostic-prompt-standard/releases/tag/v1.2.1)
 
-A **half-day, instructor-led** workshop that takes teams from first install to advanced automation with GitHub Copilot CLI. Covers operating modes, custom instructions, MCP servers, agent skills, plugins, custom agents, hooks, context management, and more — all through hands-on exercises validated against **Copilot CLI v1.0.57-5**.
+A **half-day, instructor-led** workshop that takes teams from first install to advanced automation with GitHub Copilot CLI. Covers operating modes, custom instructions, MCP servers, agent skills, plugins, custom agents, hooks, context management, and more — all through hands-on exercises validated against **Copilot CLI v1.0.69-1**.
 
 ## What's Inside
 
@@ -50,7 +50,7 @@ This repo includes a `.devcontainer` configuration for a fully isolated workshop
 
 ### Alternative: Run Directly on Host
 
-If you prefer not to use the Dev Container, you can follow the workshop directly on your machine (requires Node.js 22+).
+If you prefer not to use the Dev Container, you can follow the workshop directly on your machine (requires current Node.js LTS).
 
 ### Alternative: Run in Docker
 
@@ -84,7 +84,7 @@ To try out the workshop without affecting your local environment, use Docker:
    source $HOME/.local/bin/env
 
    # Install nvm and Node.js LTS
-   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/HEAD/install.sh | bash
    source ~/.bashrc
    nvm install --lts
    ```

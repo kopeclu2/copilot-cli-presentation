@@ -96,7 +96,7 @@ Pre-approve or block tools for **programmatic mode**
 
 ```bash
 # Allow specific commands
-copilot -p "Show git status" --allow-tool 'shell(git)'
+copilot -p "Show git status" --allow-tool 'shell(git status)'
 
 # Allow writes
 copilot -p "Create README" --allow-tool 'write'
@@ -141,10 +141,10 @@ copilot --add-dir ~/other-project
 copilot --disallow-temp-dir
 
 # Redact sensitive env vars
-copilot --secret-env-vars MY_API_KEY
+copilot --secret-env-vars=MY_API_KEY
 
 # Fully autonomous (no questions)
-copilot --no-ask-user --allow-all-tools
+copilot --no-ask-user --allow-all
 ```
 
 ---
@@ -164,4 +164,3 @@ Open **Module 4** in `docs/workshop/04-tools.md`
 - **Exercise 7** — Safe automation script
 
 ⏱️ You have **~16 minutes**
-

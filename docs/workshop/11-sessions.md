@@ -41,7 +41,7 @@ Sessions are stored in your Copilot config directory:
 > [!NOTE]
 > **How Session Persistence Works:**
 > - Each `copilot` invocation starts a **fresh session** by default
-> - To restore a previous session, use `/resume` slash command or `--resume` flag
+> - To restore a previous session, use `/resume`, `--resume`, or `--continue`
 > - Key session commands available:
 >   - `/resume` - Switch to a different session (optionally specify session ID)
 >   - `/rename` - Rename the current session (alias for `/session rename`)
@@ -72,9 +72,9 @@ Sessions are stored in your Copilot config directory:
 
 4. Exit with `Ctrl+C` (not `/exit`).
 
-5. Immediately start Copilot again:
+5. Immediately continue the most recent session:
    ```bash
-   copilot
+   copilot --continue
    ```
 
 6. Ask if it remembers:
@@ -85,7 +85,7 @@ Sessions are stored in your Copilot config directory:
 7. Copilot should remember from the previous session context.
 
 **Expected Outcome:**
-Recent session context is preserved when quickly re-entering.
+Recent session context is restored when you explicitly continue or resume the session.
 
 ### Exercise 2: Resume a Session
 
@@ -376,8 +376,8 @@ Session transcript saved for future reference or sharing.
 | `/exit` | End session | `/exit` |
 | `/share` | Export session transcript (interactive alternative to `--share` flag) | `/share` |
 | `/share html` | Export session as self-contained interactive HTML file; shows `file://` URL and `Ctrl+X O` to open | `/share html` |
-| `/model` | Switch AI model | `/model gpt-4` |
-| `/undo` | Undo last turn and revert file changes | `/undo` |
+| `/model` | Switch AI model | `/model` |
+| `/undo` | Undo the last turn when possible | `/undo` |
 | `/rewind` | Roll back to any point in conversation history (also via double-Esc) | `/rewind` |
 
 ## Command Line Flags
@@ -397,7 +397,7 @@ Session transcript saved for future reference or sharing.
 - ✅ Sessions maintain conversation history and context
 - ✅ Use `--resume` to continue previous sessions
 - ✅ `/clear` abandons the session; `/new` starts fresh while keeping the old session backgrounded
-- ✅ `/undo` reverts the last turn and its file changes
+- ✅ `/undo` undoes the last turn when possible
 - ✅ `/rewind` (or double-Esc) opens a timeline picker for rolling back to any conversation point
 - ✅ `/rename` auto-generates a session name from conversation history when called without arguments
 - ✅ `--name` flag sets a session name at launch; `--resume` accepts a session name for lookup

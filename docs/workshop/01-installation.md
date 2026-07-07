@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - GitHub account with active Copilot subscription (Pro, Pro+, Business, or Enterprise)
-- Node.js v22+ and npm v10+ (for npm method)
+- Current Node.js LTS and npm (for npm method)
 - macOS, Linux, or Windows
 - Terminal access
 
@@ -15,9 +15,6 @@
 - Understand subscription requirements
 
 ## Concepts
-
-> [!NOTE]
-> 🎉 **Generally Available** — GitHub Copilot CLI is generally available. No preview or beta opt-in is required.
 
 ### Subscription Requirements
 
@@ -45,30 +42,23 @@ Copilot CLI supports multiple installation methods:
 ## Updating Copilot CLI
 
 > [!NOTE]
-> 💡 **Already have Copilot CLI installed?** To update to the latest version, simply run:
->
-> ```bash
-> copilot update
-> ```
->
-> `copilot update` replaces the full binary executable, not just the JS package.
+> 💡 **Already have Copilot CLI installed?** Run `copilot update` to check for and install updates. `copilot update` updates the full binary executable.
 
-### Version & Changelog Commands
+### Version and Update Commands
 
 Check the installed binary version without launching a full session:
 
 ```bash
-copilot --binary-version
+copilot --version
 ```
 
-Inside an interactive session, use these commands:
+To check for updates without installing them:
 
-| Command | Description |
-| --- | --- |
-| `/version` | Display CLI version and check for updates |
-| `/changelog` | View the latest release changelog |
-| `/changelog last 5` | Show the last 5 release changelogs |
-| `/changelog summarize` | Get an AI-generated summary of recent changes |
+```bash
+copilot version
+```
+
+Inside an interactive session, use `/version` to display version information and check for updates.
 
 ### Shell Completion
 
@@ -130,22 +120,22 @@ GitHub Copilot CLI <version>
 
 **Steps:**
 
-1. Verify Node.js and npm versions:
+1. Verify Node.js and npm:
 
  ```bash
- node --version # Should be v22.0.0 or higher
- npm --version # Should be v10.0.0 or higher
+ node --version # Use the current Node.js LTS
+ npm --version # Use the npm bundled with Node.js LTS
  ```
 
 2. If Node.js needs updating, use nvm:
 
  ```bash
  # Install or update nvm
- curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/HEAD/install.sh | bash
 
- # Install Node.js v22
- nvm install 22
- nvm use 22
+ # Install and use Node.js LTS
+ nvm install --lts
+ nvm use --lts
  ```
 
 3. Install Copilot CLI globally:
@@ -283,13 +273,13 @@ Copilot correctly identifies your working directory and shows available commands
 | Problem | Solution |
 | --- | --- |
 | `command not found: copilot` | Ensure npm global bin is in PATH: `npm config get prefix` |
-| Node.js version too old | Use nvm to install v22+: `nvm install 22` |
+| Node.js runtime too old | Use nvm to install Node.js LTS: `nvm install --lts` |
 | Authentication fails | Check subscription status at github.com/settings/copilot |
 | Permission denied (npm) | Don't use sudo; fix npm permissions instead |
 | Organization policy error | Ask your admin to enable Copilot CLI policy |
 | `/logout` shows warning | When signed in via gh CLI, PAT, API key, or env var, `/logout` displays a warning explaining that the credential source must be removed separately |
 | Auto-update interfering | Disable with `--no-auto-update` or set `COPILOT_AUTO_UPDATE=false` |
-| Auth fails in Docker/container | Use PAT auth: `export GH_TOKEN="ghp_..."`. See [Authentication in Containers](#authentication-in-containers-and-ci-cd) below |
+| Auth fails in Docker/container | Use fine-grained PAT auth: `export GH_TOKEN="github_pat_..."`. See [Authentication in Containers](#authentication-in-containers-and-cicd) below |
 
 ### Fixing npm Permissions
 
@@ -329,7 +319,7 @@ source ~/.bashrc
  export GITHUB_TOKEN="github_pat_your_token_here"
  ```
 
- > **Note:** Supported token types include fine-grained PATs (with "Copilot Requests" permission), OAuth tokens from the GitHub Copilot CLI app, and OAuth tokens from the GitHub CLI (`gh`) app. **Classic personal access tokens (`ghp_`) are not supported.**
+ > **Note:** Supported token types include fine-grained PATs (with "Copilot Requests" permission), OAuth tokens from the GitHub Copilot CLI app, and OAuth tokens from the GitHub CLI (`gh`) app. **Classic personal access tokens are not supported.**
 
 4. Start Copilot CLI — it will authenticate automatically without a browser
 
@@ -345,18 +335,17 @@ This stores credentials separately from github.com, allowing you to connect to y
 
 ## Summary
 
-- ✅ Copilot CLI requires Node.js v22+ for npm installation
+- ✅ Copilot CLI requires current Node.js LTS for npm installation
 - ✅ Multiple installation methods: npm, Homebrew, script, WinGet
 - ✅ Authentication uses GitHub OAuth in your browser
 - ✅ GHEC data residency supported via `copilot login --host`
 - ✅ Organization members need admin-enabled CLI policy
 - ✅ Dev Containers and Codespaces include Copilot CLI by default
 - ✅ Auto-updates can be disabled with `--no-auto-update`
-- ✅ Use `--binary-version` to check the installed version without launching
-- ✅ Use `/version` and `/changelog` inside sessions for version info
+- ✅ Use `--version`, `copilot version`, and `/version` to inspect the installed version
 - ✅ `/logout` warns when credential source is external (gh CLI, PAT, env var)
 - ✅ Shell completion available for bash, zsh, and fish via `copilot completion`
-- ✅ Classic PATs (`ghp_`) are not supported — use fine-grained PATs with "Copilot Requests" permission
+- ✅ Classic PATs are not supported — use fine-grained PATs with "Copilot Requests" permission
 
 ## Next Steps
 

@@ -17,7 +17,7 @@ You MUST NOT create git commits, branches, or pull requests unless the user expl
 PROJECT_TYPE: "GitHub Copilot CLI workshop"
 
 PROJECT_DESCRIPTION: TEXT
-A hands-on guide teaching developers how to use the Copilot CLI through 12 sequential modules covering installation, sessions, tools, MCP servers, skills, custom agents, hooks, and advanced topics.
+A hands-on guide teaching developers how to use the Copilot CLI through 13 sequential modules covering installation, sessions, tools, MCP servers, skills, custom agents, hooks, and advanced topics.
 >>
 
 REPO_STRUCTURE: TEXT
@@ -31,7 +31,7 @@ WORKSHOP_FLOW: "Installation (01) -> Core Concepts (02-05) -> Advanced (06-13)"
 WORKSHOP_DURATION: "~4.5 hours"
 MODULE_COUNT: 13
 SLIDE_SYNC_RULE: "When modifying docs/workshop/NN-*.md, always check and update docs/slides/NN-*.md"
-VALIDATED_CLI_VERSION: "1.0.57-5"
+VALIDATED_CLI_VERSION: "1.0.69-1"
 
 DOCKER_SETUP: TEXT
 docker run -it --name copilot-workshop \
@@ -52,6 +52,7 @@ CONVENTIONS: TEXT
 
 AGENTS: TEXT
 - @workshop-content-manager: add, update, or remove content from workshop modules with source validation
+- @aps-v1.2.1: reference APS agent for Agnostic Prompt Standard work
 - @workshop-runner: orchestrate full workshop execution via Docker container
 - @module-executor: execute a single workshop module inside Docker (sub-agent of workshop-runner)
 - @excali: generate Excalidraw diagrams from text descriptions
@@ -59,6 +60,7 @@ AGENTS: TEXT
 - @cross-reference-validator: validate links, structure, and agent map completeness across all modules
 - @slide-sync-checker: verify slide decks stay in sync with workshop modules
 - @exercise-linter: lint workshop exercises for syntax, numbering, and reference errors
+- @landing-page-sync: sync the GitHub Pages landing page and step reader with workshop source-of-truth data
 - @content-refresher: orchestrate end-to-end content refresh across all agents
 >>
 </constants>

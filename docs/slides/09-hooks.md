@@ -181,7 +181,7 @@ Open **Module 9** in `docs/workshop/09-hooks.md`
 **Exercises 1-7:**
 1. **Exercise 1** — Create hooks skeleton
 2. **Exercise 2** — Session logging hooks
-3. **Exercise 3** — Tool usage logging
+3. **Exercise 3** — Prompt auditing hook
 4. **Exercise 4** — Pre-tool permission control
 5. **Exercise 5** — Post-tool result logging
 6. **Exercise 6** — Error handling hooks

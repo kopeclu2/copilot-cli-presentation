@@ -59,9 +59,16 @@ Every potentially destructive action requires approval:
 
 > The path permission dialog offers a **one-time approval** option in addition to permanently adding the path to the allowed list. This lets you grant access for the current session without modifying your persistent configuration.
 
-### Tool Search
+### Tool Availability vs Tool Permission
 
-> Claude models can **discover and use tools dynamically** with tool search. The model can find relevant tools without you explicitly specifying them, reducing the need for manual `--allow-tool` flags in some workflows.
+Tool availability and tool permission are separate controls:
+
+| Control | Flags | Purpose |
+|---|---|---|
+| Availability | `--available-tools`, `--excluded-tools` | Which tools the model can see |
+| Permission | `--allow-tool`, `--deny-tool`, `--allow-all-tools` | Which visible tools can run without prompting |
+
+Deny rules always take precedence over allow rules.
 
 ## Hands-On Exercises
 
@@ -293,6 +300,8 @@ You understand YOLO mode's power and risks.
 
 **Goal:** Understand the two separate directory permission layers in Copilot CLI.
 
+**Steps:**
+
 > **Key concept:** Copilot CLI has two distinct directory controls:
 >
 > | Layer | Purpose | Scope |
@@ -349,7 +358,7 @@ You understand YOLO mode's power and risks.
  /add-dir /tmp/safe-dir
  ```
 
-8. Verify with `/list-dirs` — the new path now appears.
+8. Verify with `/list-dirs` — the new path appears.
 
 9. To grant runtime access at launch instead, use the `--add-dir` flag:
  ```bash
@@ -367,6 +376,7 @@ You understand that `trustedFolders` controls the **startup trust prompt**, whil
 
 1. Create a script `analyze-project.sh`:
  ```bash
+ cat > analyze-project.sh << 'EOF'
  #!/bin/bash
  set -e
 
@@ -388,10 +398,12 @@ You understand that `trustedFolders` controls the **startup trust prompt**, whil
  --deny-tool 'shell(mv)' \
  --deny-tool 'shell(chmod)' \
  --silent
+ EOF
  ```
 
 2. Create a code review script:
  ```bash
+ cat > review-changes.sh << 'EOF'
  #!/bin/bash
 
  # Review changes but don't modify anything
@@ -402,11 +414,13 @@ You understand that `trustedFolders` controls the **startup trust prompt**, whil
  --deny-tool 'shell(git push)' \
  --deny-tool 'shell(git commit)' \
  --deny-tool 'write'
+ EOF
  ```
 
 3. Make executable and test:
  ```bash
  chmod +x analyze-project.sh
+ chmod +x review-changes.sh
  ./analyze-project.sh
  ```
 
@@ -418,7 +432,7 @@ Safe, repeatable automation with explicit permissions.
 ### Allow/Deny Syntax
 
 ```bash
-# Allow specific command
+# Allow specific command or subcommand
 --allow-tool 'shell(git status)'
 
 # Allow command family
@@ -430,8 +444,8 @@ Safe, repeatable automation with explicit permissions.
 # Allow file writes
 --allow-tool 'write'
 
-# Allow MCP server
---allow-tool 'mcp-server-name'
+# Allow all tools from an MCP server
+--allow-tool 'MyMCP'
 
 # Allow specific MCP tool
 --allow-tool 'MyMCP(my_tool)'
@@ -490,7 +504,7 @@ copilot --disallow-temp-dir
 Strip sensitive environment variable values from shell/MCP server environments and redact them from output:
 
 ```bash
-copilot --secret-env-vars MY_API_KEY DATABASE_PASSWORD
+copilot --secret-env-vars=MY_API_KEY,DATABASE_PASSWORD
 ```
 
 ### Autonomous Mode (No User Questions)
@@ -518,8 +532,6 @@ copilot -p "Fix all linting errors" --allow-all-tools --no-ask-user
 |------|------------|
 | `--yolo` | `--allow-all-tools --allow-all-paths --allow-all-urls` |
 | `--allow-all` | Same as `--yolo` |
-
-> **Note:** `/yolo` and `--yolo` now behave identically. When you toggle `/yolo` in an interactive session, the YOLO state persists across `/restart` — you don't need to re-enable it after a hot restart.
 | `--allow-url` | Allow specific URLs/domains |
 | `--deny-url` | Deny specific URLs/domains (takes precedence) |
 | `--allow-all-urls` | Allow all URLs without confirmation |
@@ -546,15 +558,13 @@ copilot -p "Fix all linting errors" --allow-all-tools --no-ask-user
 - ✅ `--allow-tool` and `--deny-tool` enable automation
 - ✅ Deny rules take precedence over allow rules
 - ✅ `--yolo` / `--allow-all` enables full autonomy - use only in safe environments
-- ✅ Trusted directories control Copilot's file access scope
+- ✅ Trusted directories control launch-time trust; `/add-dir` and `--add-dir` control runtime file access scope
 - ✅ URL permissions (`--allow-url`, `--deny-url`) control network access
 - ✅ `url` pattern enables tool-level URL matching
 - ✅ `--secret-env-vars` protects sensitive values from leaking
 - ✅ `--no-ask-user` enables fully autonomous operation
 - ✅ Path permission dialog offers one-time approval
-- ✅ Claude models support dynamic tool search
 - ✅ `/add-dir` accepts relative paths like `./src` and `../sibling`
-- ✅ `/yolo` state persists across `/restart`; `/yolo` and `--yolo` behave identically
 
 ## Next Steps
 

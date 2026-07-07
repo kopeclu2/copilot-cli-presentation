@@ -10,7 +10,7 @@
 
 - Create custom agents with specialized personas
 - Configure agents at repository, organization, and enterprise levels
-- Use built-in agents (Explore, Task, Plan, Code-review)
+- Use built-in agents and workflows (Explore, Task, Plan, Code-review, Research, Fleet, Rubber-duck)
 - Invoke agents explicitly in conversations
 - Build subagents for complex workflows
 
@@ -32,7 +32,7 @@ Each custom agent is defined by a Markdown file with an **`.agent.md`** extensio
 ---
 name: agent-name
 description: What this agent does
-model: claude-sonnet-4.6 # Optional: override AI model (accepts display names and vendor suffixes)
+model: auto # Optional: override AI model or use automatic selection
 tools: # Optional: default is all tools
  - shell
  - write
@@ -44,7 +44,7 @@ skills: # Optional: eagerly load named skills
 [Markdown body with detailed instructions]
 ```
 
-> **Note:** The `model` field now accepts display names (e.g., `"Claude Sonnet 4.6"`) and vendor suffixes (e.g., `"sonnet-4.6"`) in addition to the full model identifier. Copilot resolves the closest matching model.
+> **Note:** The `model` field accepts display names and vendor suffixes in addition to full model identifiers. Copilot resolves the closest matching model.
 
 > **Note:** The `skills` field declares which skills should be eagerly loaded when the agent is invoked. Without this field, skills are loaded on-demand based on prompt matching. Eager loading ensures the agent always has access to specific skill content.
 
@@ -100,10 +100,13 @@ Copilot CLI includes specialized built-in agents:
 | **Task** | Run commands with smart output handling |
 | **Plan** | Create implementation plans |
 | **Code-review** | High signal-to-noise code reviews |
+| **Research** | Deep research across code, repositories, and web sources |
+| **Fleet** | Parallel subagent orchestration for complex tasks |
+| **Rubber-duck** | High-signal critique of plans, designs, and implementations |
 
 > **Note:** Built-in agents are not included in the `/agent` list. They are invoked via the main agent's task tool.
 
-### Critic Agent — Experimental — MAJOR
+### Critic Agent — Experimental
 
 > The **critic agent** is an experimental built-in agent. It provides automated review and critique of agent-generated output before it is finalized.
 >
@@ -113,7 +116,7 @@ Copilot CLI includes specialized built-in agents:
 > - Provides feedback that can be incorporated before finalizing changes
 >
 > Enable experimental features to use the critic agent:
-> ```bash
+> ```text
 > copilot --experimental
 > ```
 >
@@ -412,6 +415,26 @@ Agent creates well-structured documentation.
  - Focuses on real issues
  - Actionable suggestions
 
+5. **Use the Research agent** for deep investigations:
+ ```
+ /research Compare the trade-offs of REST and GraphQL for this project
+ ```
+
+ The Research agent:
+ - Breaks topics into sub-questions
+ - Searches available code, repositories, and web sources
+ - Produces structured findings
+
+6. **Use Fleet for parallel subagent work:**
+ ```
+ /fleet Add tests for each independent service module
+ ```
+
+ Fleet:
+ - Decomposes complex work into parallel subagent tasks
+ - Coordinates results through an orchestrator
+ - Works best for independent, parallelizable changes
+
 > **Note:** Built-in agents are not listed in the `/agent` menu. They are invoked automatically by the main agent when it determines their expertise is needed.
 
 **Expected Outcome:**
@@ -550,7 +573,7 @@ Agent performs analysis without modification capabilities.
  EOF
  ```
 
-3. Restart the CLI. The agent is now available in all your repositories.
+3. Restart the CLI. The agent is available in all your repositories.
 
 4. Priority order (highest to lowest):
  - **User agents** (`~/.config/copilot/agents/`) — highest priority
@@ -706,7 +729,7 @@ description: What this agent does # Required, max 1024 chars
 ---
 name: agent-name
 description: Description
-model: gpt-5.4 # Optional: specify AI model (display names and vendor suffixes accepted)
+model: auto # Optional: specify AI model or use auto selection
 tools: # Optional, defaults to all
  - shell
  - write
@@ -718,7 +741,7 @@ skills: # Optional: eagerly load named skills
 ---
 ```
 
-> **Note:** Unknown frontmatter fields now produce a warning instead of blocking agent load, making agents more forward-compatible.
+> **Note:** Unknown frontmatter fields produce a warning instead of blocking agent load, making agents more forward-compatible.
 >
 > **Note:** Agents are model-aware — when asked which model is powering them, they can respond accurately.
 
@@ -745,7 +768,8 @@ skills: # Optional: eagerly load named skills
 - ✅ Create agents via `/agent` command or manually in `.github/agents/`
 - ✅ Invoke agents via `/agent` slash command, explicit instruction, inference, or `--agent` flag
 - ✅ User-level agents (`~/.config/copilot/agents/`) override repo-level agents
-- ✅ Built-in agents (Explore, Task, Plan, Code-review) handle common tasks
+- ✅ Built-in agents and workflows (Explore, Task, Plan, Code-review, Research, Fleet) handle common tasks
+- ✅ Rubber-duck provides focused critique for plans and implementations
 - ✅ Explore agent can use GitHub MCP tools when available
 - ✅ Agent `model` field overrides the default AI model
 - ✅ Tool restrictions limit what agents can do
