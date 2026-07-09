@@ -5,7 +5,7 @@ Welcome to this hands-on workshop for mastering GitHub Copilot CLI! This worksho
 ## Prerequisites
 
 - GitHub account with an active Copilot subscription (Pro, Pro+, Business, or Enterprise)
-- Node.js v22+ and npm v10+ (for npm installation method)
+- Current Node.js LTS and npm (for npm installation method)
 - Basic command-line experience
 - A code editor (VS Code recommended)
 - Git installed and configured
@@ -17,7 +17,7 @@ By the end of this workshop, you will be able to:
 - Install and configure Copilot CLI on any platform
 - Use interactive, interactive-with-prompt, and programmatic modes effectively, including slash commands
 - Manage sessions and delegate tasks to cloud agents
-- Create custom instructions with AGENTS.md and llm.txt
+- Create custom instructions with AGENTS.md and copilot-instructions.md
 - Control tool permissions, URL access, and use `--yolo` mode safely
 - Configure and use MCP servers, including the built-in GitHub MCP server
 - Create and use skills from agentskills.io
@@ -34,7 +34,7 @@ By the end of this workshop, you will be able to:
 | --- | --- | --- | --- |
 | 01 | [Installation](01-installation.md) | 15 min | Install via npm, Homebrew, or script |
 | 02 | [Operating Modes & Commands](02-modes.md) | 30 min | Interactive chat, slash commands, programmatic, and `/delegate` |
-| 03 | [Custom Instructions](03-instructions.md) | 25 min | AGENTS.md, llm.txt, copilot-instructions.md |
+| 03 | [Custom Instructions](03-instructions.md) | 25 min | AGENTS.md, copilot-instructions.md, path-specific instructions |
 | 04 | [Tools & Permissions](04-tools.md) | 20 min | Built-in tools, allow/deny, `--yolo` mode |
 | 05 | [MCP Servers](05-mcps.md) | 25 min | Configure remote and local MCP servers |
 | 06 | [Agent Skills](06-skills.md) | 20 min | Create and use skills, agentskills.io |
@@ -79,13 +79,13 @@ copilot -i "Fix the bug in main.js"
 copilot -p "your prompt here"
 
 # Allow specific tools
-copilot --allow-tool 'shell(git)'
+copilot --allow-tool 'shell(git status)'
 
 # Full autonomy (use carefully!)
 copilot --yolo
 
 # Resume last session
-copilot --resume
+copilot --continue
 ```
 
 ### Essential Slash Commands
@@ -96,38 +96,51 @@ copilot --resume
 | `/ask` | Ask a quick question without affecting conversation history |
 | `/clear` | Abandon session and start fresh |
 | `/new` | Start new conversation (old session stays backgrounded) |
+| `/session` | View and manage sessions |
+| `/usage` | Display session usage metrics |
 | `/context` | View token usage |
 | `/compact` | Compress session history |
 | `/plan` | Create implementation plan before coding |
 | `/review` | Run code review agent |
+| `/rubber-duck` | Get high-signal critique of a plan, design, or implementation |
+| `/security-review` | Analyze changes for security vulnerabilities |
 | `/diff` | Review changes made in current directory |
+| `/pr` | Operate on pull requests for the current branch |
 | `/delegate` | Hand off to cloud agent |
 | `/model` | Switch AI model |
 | `/mcp` | Manage MCP servers |
+| `/plugin` | Manage plugins and plugin marketplaces |
 | `/init` | Initialize Copilot config for repo |
 | `/instructions` | View and toggle custom instruction files |
+| `/allow-all` | Enable all permissions during the session |
+| `/add-dir` | Add a directory to the session access scope |
+| `/list-dirs` | Display all accessible directories |
 | `/cwd` | Change working directory |
 | `/research` | Deep research with exportable reports |
-| `/undo` | Undo last turn and revert file changes |
+| `/undo` | Undo the last turn when possible |
 | `/rewind` | Roll back to any point in conversation history |
 | `/copy` | Copy last response to clipboard |
 | `/ide` | Connect to IDE workspace |
-| `/streamer-mode` | Toggle streamer mode |
+| `/lsp` | Manage language server configuration |
+| `/terminal-setup` | Configure multiline terminal input |
 | `/voice` | Manage voice mode (dictation) |
 | `/after` | Schedule a one-shot prompt or skill |
 | `/every` | Schedule a recurring prompt or skill |
 | `/fleet` | Enable fleet mode for parallel subagent execution |
 | `/tasks` | View and manage tasks (subagents and shell commands) |
+| `/env` | Show loaded instructions, MCP servers, skills, agents, hooks, plugins, LSPs, and extensions |
+| `/settings` | Open or edit CLI settings |
+| `/subagents` | Configure default and per-agent subagent models |
 
 ## Environment Setup Check
 
 Before starting, verify your environment:
 
 ```bash
-# Check Node.js version (need v22+)
+# Check Node.js runtime (use current LTS)
 node --version
 
-# Check npm version (need v10+)
+# Check npm
 npm --version
 
 # Check Git
@@ -150,7 +163,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 source $HOME/.local/bin/env
 
 # Install nvm and Node.js LTS
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/HEAD/install.sh | bash
 source ~/.bashrc
 nvm install --lts
 ```

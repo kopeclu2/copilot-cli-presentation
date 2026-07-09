@@ -77,10 +77,10 @@ All settings live in `~/.copilot/config.json`:
 
 ```json
 {
-  "model": "claude-sonnet-4.6",
-  "theme": "auto",
+  "model": "auto",
+  "theme": "github",
   "mouse": true,
-  "beep": true,
+  "beep": false,
   "compactPaste": true,
   "includeCoAuthoredBy": true,
   "updateTerminalTitle": true,
@@ -117,7 +117,7 @@ Override location: `COPILOT_HOME` env var
 | `COPILOT_CUSTOM_INSTRUCTIONS_DIRS` | Extra instruction dirs |
 | `COPILOT_EDITOR` | Editor for plans/prompts |
 | `PLAIN_DIFF` | Disable rich diffs |
-| `USE_BUILTIN_RIPGREP` | Use system ripgrep |
+| `USE_BUILTIN_RIPGREP` | Set `false` to use PATH ripgrep |
 | `NO_COLOR` | Disable color output |
 
 ---
@@ -139,6 +139,9 @@ Override location: `COPILOT_HOME` env var
 | `--context <tier>` | Context window tier |
 | `--log-dir` / `--log-level` | Logging control |
 | `--plugin-dir` | Load local plugin |
+| `--max-ai-credits` | Session AI credit limit |
+| `--session-id` | Set/resume session ID |
+| `--remote-export` | Read-only web/mobile export |
 
 ---
 
@@ -147,7 +150,7 @@ Override location: `COPILOT_HOME` env var
 ```
 /ide          # Connect to IDE workspace
 /copy         # Copy last response to clipboard
-/streamer-mode  # Toggle streamer mode
+config.json: "streamerMode": true
 ```
 
 Config options:
@@ -162,10 +165,10 @@ Config options:
 {
   "companyAnnouncements": [
     "Remember: never commit secrets",
-    "Sprint 14 ends Friday"
+    "Sprint ends this week"
   ],
   "includeCoAuthoredBy": true,
-  "model": "gpt-5.4"
+  "model": "auto"
 }
 ```
 

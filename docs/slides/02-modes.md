@@ -138,17 +138,18 @@ Type **`/help`** to see them all
 
 | Category | Key commands |
 |----------|-------------|
-| **Review** | `/plan`, `/review`, `/diff`, `/research` |
+| **Review** | `/plan`, `/review`, `/rubber-duck`, `/security-review`, `/diff`, `/research`, `/undo` |
 | **Session** | `/clear`, `/resume`, `/rename`, `/session`, `/usage` |
 | **Navigation** | `/cwd`, `/add-dir`, `/list-dirs` |
 | **Context** | `/context`, `/compact` |
-| **Config** | `/model`, `/mcp`, `/theme`, `/terminal-setup`, `/streamer-mode`, `/instructions` |
-| **Tools** | `/allow-all`, `/yolo`, `/reset-allowed-tools` |
+| **Config** | `/model`, `/mcp`, `/plugin`, `/settings`, `/subagents`, `/instructions` |
+| **Tools** | `/allow-all`, `/reset-allowed-tools` |
 | **Extensibility** | `/skills`, `/plugin`, `/agent`, `/fleet` |
+| **Scheduling** | `/after`, `/every` |
 | **Sharing** | `/share`, `/feedback`, `/copy` |
 | **Account** | `/login`, `/logout`, `/user` |
 | **IDE** | `/ide` |
-| **System** | `/help`, `/exit`, `/init`, `/tasks`, `/lsp`, `/update`, `/restart`, `/version`, `/changelog`, `/chronicle` |
+| **System** | `/help`, `/exit`, `/init`, `/tasks`, `/lsp`, `/update`, `/restart`, `/version`, `/chronicle`, `/limits` |
 
 ---
 
@@ -171,6 +172,59 @@ Type **`/help`** to see them all
 | `ctrl+g` | Open prompt in external editor |
 
 > See workshop for 25+ additional shortcuts including text editing and navigation
+
+---
+
+## Agent Selection
+
+Start with a specialized agent when you need focused behavior:
+
+```
+/rubber-duck Review this plan for logic errors and missed edge cases
+```
+
+Or start directly with the same agent:
+
+```bash
+copilot --agent rubber-duck
+```
+
+**Rubber-duck** gives high-signal critique of plans and implementations:
+
+- Bugs and logic errors
+- Design flaws
+- Missed edge cases
+
+---
+
+## Security Review Mode
+
+Run a security-focused review of staged and unstaged changes:
+
+```
+/security-review Check these changes for exploitable security issues
+```
+
+Use it for:
+
+- Auth and authorization changes
+- Input handling and dependency changes
+- Secrets or sensitive-data paths
+
+---
+
+## Scheduling Prompts
+
+Run prompts later or repeatedly:
+
+```
+/after 30m Check whether the test run finished
+/every 1h Run frontend tests and report failures
+```
+
+- `/after` — one-shot schedule
+- `/every` — recurring schedule
+- Scheduled work appears in `/tasks`
 
 ---
 
@@ -203,4 +257,3 @@ Open **Module 2** in `docs/workshop/02-modes.md`
 - **Exercise 8–9** — Delegate & comparing modes
 
 ⏱️ You have **~16 minutes**
-

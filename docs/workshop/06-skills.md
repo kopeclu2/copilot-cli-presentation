@@ -50,6 +50,30 @@ Level 3: Resources → Copilot accesses supporting files (as needed)
 >
 > Built-in skills are listed alongside project and personal skills in the `/skills` command output. They cannot be disabled but can be overridden by creating a project or personal skill with the same name.
 
+### Managing Skills from the Shell
+
+Use the `copilot skill` command to add, list, and remove skills without starting an interactive session:
+
+```bash
+# Add a directory of skills
+copilot skill add ~/my-custom-skills
+
+# Add a skill from a local SKILL.md file
+copilot skill add ./my-skill/SKILL.md
+
+# Add a skill to the current project
+copilot skill add --project ./my-skill/SKILL.md
+
+# Add a skill from a URL
+copilot skill add https://example.com/my-skill/SKILL.md
+
+# List all skills
+copilot skill list
+copilot skill list --json
+```
+
+Skills are discovered from project directories (`.github/skills/`, `.agents/skills/`, `.claude/skills/`), personal directories (`~/.copilot/skills/`, `~/.agents/skills/`), installed plugins, and custom directories added with `copilot skill add <directory>`.
+
 ## Hands-On Exercises
 
 ### Exercise 1: Create a Project Skill
@@ -90,10 +114,10 @@ Level 3: Resources → Copilot accesses supporting files (as needed)
 
  ### For OpenAPI specs:
  ```yaml
- openapi: 3.0.0
+ openapi: <openapi-version>
  info:
  title: API Name
- version: 1.0.0
+ version: <api-version>
  paths:
  /resource:
  get:
@@ -426,24 +450,21 @@ Personal skills are available in all projects.
  curl -s https://api.github.com/repos/anthropics/skills/contents/skills | jq '.[].name'
  ```
 
-3. Install a skill from the repository (example: `mcp-builder`):
+3. Install a skill from the repository into the current project (example: `mcp-builder`):
  ```bash
- # Download skill to project
- mkdir -p .github/skills/mcp-builder
- curl -o .github/skills/mcp-builder/SKILL.md \
- https://raw.githubusercontent.com/anthropics/skills/main/skills/mcp-builder/SKILL.md
+ copilot skill add --project \
+   https://raw.githubusercontent.com/anthropics/skills/main/skills/mcp-builder/SKILL.md
  ```
 
 4. Or install to personal skills so it works across all projects:
  ```bash
- mkdir -p ~/.copilot/skills/mcp-builder
- curl -o ~/.copilot/skills/mcp-builder/SKILL.md \
- https://raw.githubusercontent.com/anthropics/skills/main/skills/mcp-builder/SKILL.md
+ copilot skill add \
+   https://raw.githubusercontent.com/anthropics/skills/main/skills/mcp-builder/SKILL.md
  ```
 
-5. Verify the skill was downloaded:
+5. Verify the skill was installed:
  ```bash
- cat .github/skills/mcp-builder/SKILL.md | head -10
+ copilot skill list
  ```
 
 6. Test the installed skill:
@@ -491,7 +512,7 @@ Community skills enhance your Copilot capabilities.
  ## Deployment Steps
  1. Run tests: `./scripts/test.sh`
  2. Build: `./scripts/build.sh`
- 3. Deploy: `./scripts/deploy.sh <environment>`
+ 3. Deploy: `./scripts/deploy.sh staging`
 
  ## Scripts
  See `scripts/` directory for deployment scripts.
@@ -499,7 +520,7 @@ Community skills enhance your Copilot capabilities.
  ## Pre-deployment Checklist
  - [ ] All tests passing
  - [ ] No security vulnerabilities
- - [ ] Database migrations reviewed
+ - [ ] Database changes reviewed
  - [ ] Feature flags configured
  - [ ] Rollback plan documented
 
@@ -512,7 +533,7 @@ Community skills enhance your Copilot capabilities.
 
  ### Check deployment status
  ```bash
- ./scripts/status.sh <environment>
+ ./scripts/status.sh staging
  ```
  ~~~
 
@@ -527,7 +548,13 @@ Community skills enhance your Copilot capabilities.
  # Add actual deployment logic
  EOF
 
- chmod +x .github/skills/deploy/scripts/deploy.sh
+ cat > .github/skills/deploy/scripts/status.sh << 'EOF'
+ #!/bin/bash
+ ENV=${1:-staging}
+ echo "Deployment status for $ENV: healthy"
+ EOF
+
+ chmod +x .github/skills/deploy/scripts/deploy.sh .github/skills/deploy/scripts/status.sh
  ```
 
 4. Test:
@@ -623,9 +650,12 @@ license: MIT # Optional: License identifier
 | Location | Scope | Priority |
 |----------|-------|----------|
 | `.github/skills/` | Project | Higher |
+| `.agents/skills/` | Project | Higher |
+| `.claude/skills/` | Project | Higher |
 | `~/.copilot/skills/` | Personal | Lower |
 | `~/.agents/skills/` | Personal (shared with VS Code) | Lower |
-| `~/.claude/skills/` | Personal (legacy) | Lower |
+| Installed plugins | Plugin | Depends on plugin scope |
+| Custom directory added with `copilot skill add <directory>` | Custom | Depends on directory |
 
 ## Summary
 
@@ -635,9 +665,9 @@ license: MIT # Optional: License identifier
 - ✅ Include examples and templates for better output quality
 - ✅ Community skills available at [github.com/anthropics/skills](https://github.com/anthropics/skills)
 - ✅ Copilot auto-selects skills based on your request
-- ✅ YAML array syntax for `allowed-tools` in skill files now loads correctly
-- ✅ Skill files saved with UTF-8 BOM (common on Windows) now load correctly
-- ✅ Built-in skills ship with CLI — always available without configuration
+- ✅ `copilot skill add` installs skills from files, URLs, or directories
+- ✅ `copilot skill list --json` provides machine-readable skill inventory
+- ✅ Built-in skills ship with CLI and are available without configuration
 
 ## Next Steps
 

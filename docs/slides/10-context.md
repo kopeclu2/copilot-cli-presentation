@@ -81,15 +81,14 @@ When full → **auto-compaction** at ~95% capacity
 
 ## Models & Token Limits
 
-| Model (example) | Approximate Limit |
-|-------|-------------------|
-| GPT-4 | ~128K tokens |
-| GPT-4.1 | ~128K tokens |
-| Claude Sonnet 4 | ~200K tokens |
+Use **`/model`** to switch models and inspect available context tiers.
 
-Use **`/model`** to switch models. Available models change frequently — check your session for the current list.
+```bash
+copilot --context long_context
+copilot help config
+```
 
-> ⚠️ Model names above are illustrative. Availability varies by subscription tier.
+Available models and context windows depend on your subscription and selected model.
 
 ---
 
@@ -149,7 +148,7 @@ Show me just @src/auth/middleware.ts
 | `@~/home` | `@~/notes/ideas.md` | Home directory |
 | `@../parent` | `@../shared-lib/utils.js` | Parent directory |
 
-> `/add-dir` directories now **persist** across `/clear` and `/resume`
+> `/add-dir` directories persist across `/clear` and `/resume`
 > `/add-dir` accepts **relative paths** like `./src`, `../sibling`
 > **Reasoning token usage** shown in per-model breakdown via `/usage`
 
@@ -170,4 +169,3 @@ Open **Module 10** in `docs/workshop/10-context.md`
 - **Exercise 7** — Context-aware workflow
 
 ⏱️ You have **~12 minutes**
-

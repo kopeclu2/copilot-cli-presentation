@@ -10,7 +10,7 @@
 
 - Create repository-wide instructions with `copilot-instructions.md`
 - Write effective `AGENTS.md` files for agent behavior
-- Understand `llm.txt` and its purpose
+- Understand repository-wide, directory-specific, and path-specific instruction files
 - Use path-specific instructions for different file types
 - Implement commit conventions in agent instructions
 
@@ -29,8 +29,6 @@ Copilot CLI reads instructions from multiple sources with this priority:
 6. Default behavior (lowest)
 ```
 
-*Note: `llm.txt` for copilot instructions is currently listed as an issue to be implemented. This file currently can be located within websites to allow models/LLM's to better consume and navigate the site. See [here](https://llmstxthub.com/) for examples*
-
 ### File Purposes
 
 | File | Scope | Purpose |
@@ -38,7 +36,6 @@ Copilot CLI reads instructions from multiple sources with this priority:
 | `AGENTS.md` | Directory tree | Agent persona and behavior |
 | `copilot-instructions.md` | Repository | Coding standards and conventions |
 | `*.instructions.md` | File patterns | Language/path-specific rules |
-| `llm.txt` | Website/project | LLM-optimized information about the site for a model |
 
 ### The `/instructions` Command
 
@@ -61,9 +58,9 @@ This is especially helpful when multiple instruction files interact and you need
 
 > Instruction files with `applyTo` frontmatter are consolidated into a single table display in `/instructions` output. This reduces context usage by grouping path-specific instructions together instead of listing them individually.
 
-### Duplicate Instruction File Dedup
+### Duplicate Instruction File Deduplication
 
-> Copilot CLI now automatically deduplicates instruction files that are discovered from multiple paths (e.g., when `COPILOT_CUSTOM_INSTRUCTIONS_DIRS` overlaps with the project directory). Each unique instruction file is loaded only once, even if found in multiple locations.
+Copilot CLI deduplicates instruction files that are discovered from multiple paths (for example, when `COPILOT_CUSTOM_INSTRUCTIONS_DIRS` overlaps with the project directory). Each unique instruction file is loaded only once, even if found in multiple locations.
 
 ### Disabling Custom Instructions
 
@@ -172,7 +169,7 @@ Generated code follows your specified style (2-space indent, const usage, JSDoc 
    - API style: RESTful with OpenAPI documentation
 
    ## Commit Conventions
-   All commits must follow Conventional Commits v1.0.0:
+   All commits must follow Conventional Commits:
 
    Format: `<type>(<scope>): <description>`
 
@@ -191,7 +188,7 @@ Generated code follows your specified style (2-space indent, const usage, JSDoc 
    - `docs(readme): update installation steps`
 
    ## Boundaries - DO NOT
-   - Never modify database migration files without explicit permission
+   - Never modify database change files without explicit permission
    - Never commit directly to main branch
    - Never remove tests, even if they're failing
    - Never hardcode environment-specific values
@@ -365,7 +362,7 @@ Different instructions apply based on file type.
    ## Your Expertise
    - Database schema design
    - Query optimization
-   - Migration safety
+   - Schema change safety
    - Data integrity
 
    ## Rules
@@ -374,8 +371,8 @@ Different instructions apply based on file type.
    - Add `createdAt` and `updatedAt` to all tables
    - Use soft deletes (`deletedAt`) for user data
 
-   ## Migration Safety
-   Before creating migrations:
+   ## Schema Change Safety
+   Before creating schema changes:
    1. Check for data that would be affected
    2. Consider backward compatibility
    3. Plan rollback strategy
@@ -383,7 +380,7 @@ Different instructions apply based on file type.
    ## DO NOT
    - Drop columns in production without data backup
    - Use `CASCADE` deletes without explicit approval
-   - Create migrations that lock tables for extended periods
+   - Create schema changes that lock tables for extended periods
    EOF
    ```
 
@@ -393,7 +390,7 @@ Different instructions apply based on file type.
    copilot
    ```
    ```
-   Create a migration to add a comments table
+   Create a schema change to add a comments table
    ```
 
 4. Compare with root directory behavior:
@@ -402,7 +399,7 @@ Different instructions apply based on file type.
    copilot
    ```
    ```
-   Create a migration to add a comments table
+   Create a schema change to add a comments table
    ```
 
 **Expected Outcome:**
@@ -485,7 +482,6 @@ Commit messages follow Conventional Commits format.
 - ✅ `copilot-instructions.md` sets repository-wide standards
 - ✅ `AGENTS.md` defines agent persona and boundaries
 - ✅ Path-specific instructions target file types with `applyTo`
-- ✅ `llm.txt` provides LLM-optimized project context
 - ✅ Nested AGENTS.md files enable directory-specific behavior
 - ✅ Commit conventions should be explicitly documented
 - ✅ `--no-custom-instructions` disables all instruction file loading
@@ -503,4 +499,4 @@ Commit messages follow Conventional Commits format.
 - [Custom Instructions - GitHub Docs](https://docs.github.com/en/copilot/customizing-copilot/adding-custom-instructions-for-github-copilot)
 - [How to Write Great AGENTS.md](https://github.blog/ai-and-ml/github-copilot/how-to-write-a-great-agents-md-lessons-from-over-2500-repositories/)
 - [llms.txt Specification](https://github.com/AnswerDotAI/llms-txt)
-- [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
+- [Conventional Commits](https://www.conventionalcommits.org/)

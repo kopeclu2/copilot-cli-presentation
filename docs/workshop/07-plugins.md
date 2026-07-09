@@ -38,37 +38,48 @@ Plugins extend Copilot's capabilities beyond built-in features:
 
 | Feature | Plugin | MCP Server | Skill |
 |---------|--------|------------|-------|
-| Installation | npm/manual | Config file | Directory |
-| Scope | Global | Session/project | Project/personal |
-| Capabilities | Full integration | Tools/resources | Instructions |
-| Distribution | Package registry | Config sharing | Files/git |
+| Installation | `copilot plugin install` | `copilot mcp add` or config file | `copilot skill add` or directory |
+| Scope | Installed plugin | User/workspace/plugin/session | Project/personal/plugin/custom |
+| Capabilities | Skills, agents, hooks, MCP servers, LSP servers | Tools/resources | Instructions |
+| Distribution | Marketplace, GitHub repo, repo subdirectory, git URL | Config sharing | Files/git/URL |
 
-### Extensions (Experimental)
+### Interactive Plugin Management
 
-> Extensions are an experimental feature. API and behavior may change.
+Use `/plugin` inside a Copilot CLI session to manage plugins and plugin marketplaces interactively:
 
-Extensions let Copilot write custom tools and hooks for itself at runtime using `@github/copilot-sdk`. Unlike plugins (pre-packaged integrations), extensions are generated on-the-fly during a session.
-
-```bash
-# View, enable, and disable loaded extensions
-/extensions
+```
+/plugin
+/plugin install workiq@copilot-plugins
+/plugin marketplace browse copilot-plugins
 ```
 
-Key capabilities:
-- Extensions can be CommonJS modules (`.cjs`)
-- Extension tools integrate with the permissions system
-- Use `skipPermission` per-tool to bypass permission prompts for trusted extension tools
-- The loaded extensions count is shown in the "Environment loaded" startup message
+Use this path when you are already in a session and want the CLI to guide plugin discovery, installation, marketplace browsing, updates, or removal.
 
-### Open Plugins Spec
+### Shell Plugin Management Commands
 
-> Copilot CLI supports the [Open Plugins specification](https://github.com/nichochar/open-plugins-spec):
-> - `.lsp.json` plugin manifest files
-> - PascalCase hook event names
-> - `exclusive` path mode
-> - `:` namespace separator
->
-> This improves cross-platform compatibility with VS Code, Claude Code, and other tools.
+Use `copilot plugin` from the shell when you want scriptable plugin management:
+
+```bash
+# Browse the included marketplaces
+copilot plugin marketplace list
+copilot plugin marketplace browse copilot-plugins
+copilot plugin marketplace browse awesome-copilot
+
+# Install from a marketplace
+copilot plugin install workiq@copilot-plugins
+
+# Install directly from GitHub
+copilot plugin install owner/repo
+copilot plugin install owner/repo:plugins/my-plugin
+
+# Install from a git URL
+copilot plugin install https://github.com/owner/my-plugin.git
+
+# Inspect and maintain installed plugins
+copilot plugin list
+copilot plugin update
+copilot plugin uninstall workiq
+```
 
 ### Plugin Sources
 
@@ -85,11 +96,11 @@ Key capabilities:
 
 ### Plugin Hooks and Environment
 
-> Plugins hooks now receive `PLUGIN_ROOT` environment variables, pointing to the plugin's installation directory. This allows hook scripts to reference files within the plugin package without hardcoding paths.
+Plugin hooks receive `PLUGIN_ROOT` environment variables pointing to the plugin installation directory. This allows hook scripts to reference files within the plugin package without hardcoding paths.
 
 ### Post-Install Messages
 
-> Plugins can now declare a post-install message in their manifest. After `/plugin install` completes, the message is displayed to the user — useful for setup instructions, configuration requirements, or usage tips.
+Plugins can declare a post-install message in their manifest. After `copilot plugin install` completes, the message is displayed to the user for setup instructions, configuration requirements, or usage tips.
 
 > [!NOTE]
 > Two marketplaces are included by default and do not need to be added: `copilot-plugins` (github/copilot-plugins) and `awesome-copilot` (github/awesome-copilot). Additional marketplaces can be configured via the `extraKnownMarketplaces` repository setting.
@@ -107,12 +118,12 @@ Key capabilities:
  https://github.com/github/copilot-plugins
  ```
 
-2. Browse the available plugins. The repo currently contains:
- - **Skills** — Reusable prompts and workflows (e.g., `spark-app-template`, `workiq`)
+2. Browse the included plugin marketplace from the CLI:
+ ```bash
+ copilot plugin marketplace browse copilot-plugins
+ ```
 
-3. Note the `plugins/` directory structure:
- - `plugins/spark/skills/spark-app-template` — A skill for scaffolding Spark apps
- - `plugins/workiq` — Microsoft Work IQ integration (see Exercise 2)
+3. Note the plugin catalog entries, including integrations such as WorkIQ, Spark, Advanced Security, Microsoft 365 Agents Toolkit, Fabric skills, Power BI authoring, and language server plugins.
 
 4. Read the [CONTRIBUTING.md](https://github.com/github/copilot-plugins/blob/main/CONTRIBUTING.md) for how to submit your own plugins.
 
@@ -143,7 +154,7 @@ You understand the available plugins and their purposes.
  https://github.com/microsoft/work-iq-mcp
  ```
 
-2. Microsoft Work IQ (Public Preview) queries your **Microsoft 365 data** with natural language:
+2. Microsoft Work IQ queries your **Microsoft 365 data** with natural language:
  - **Emails** — "What did John say about the proposal?"
  - **Meetings** — "What's on my calendar tomorrow?"
  - **Documents** — "Find my recent PowerPoint presentations"
@@ -158,8 +169,13 @@ You understand the available plugins and their purposes.
  /plugin install workiq@copilot-plugins
  ```
 
+ Or install from the shell:
+ ```bash
+ copilot plugin install workiq@copilot-plugins
+ ```
+
  > [!NOTE]
- > Plugins installed via `/plugin install` are **hot-loaded** — their agents and skills are available immediately without restarting the CLI.
+ > Plugins installed with `/plugin install` or `copilot plugin install` provide their bundled skills, agents, hooks, MCP servers, and language servers to Copilot CLI.
 
  Or install standalone via npm:
  ```bash
@@ -284,7 +300,7 @@ Database query capabilities via Copilot.
 ### Exercise 5: Create a Simple Custom Plugin
 
 > [!TIP]
-> This exercise uses the `McpServer` high-level API from `@modelcontextprotocol/sdk` (v1.27+). Tool input schemas use [Zod](https://zod.dev/) (bundled with the SDK). The server communicates over stdio.
+> This exercise uses the `McpServer` high-level API from `@modelcontextprotocol/sdk`. Tool input schemas use [Zod](https://zod.dev/) (bundled with the SDK). The server communicates over stdio.
 
 **Goal:** Build a basic plugin for your workflow.
 
@@ -315,7 +331,7 @@ Database query capabilities via Copilot.
 
  const server = new McpServer({
  name: 'my-tools',
- version: '1.0.0'
+ version: 'workshop'
  });
 
  // Add a simple tool
@@ -474,9 +490,13 @@ You can find, evaluate, and contribute to the plugin ecosystem.
 ### From a Marketplace
 
 ```bash
-# Install from a registered marketplace
+# Install from a registered marketplace in an interactive session
 /plugin install spark@copilot-plugins
 /plugin install some-plugin@awesome-copilot
+
+# Or install from the shell
+copilot plugin install spark@copilot-plugins
+copilot plugin install some-plugin@awesome-copilot
 ```
 
 ### From a GitHub Repository
@@ -570,17 +590,10 @@ copilot --plugin-dir ./plugin-a --plugin-dir ./plugin-b
 - ✅ Always review plugins for security before installation
 - ✅ `--plugin-dir` loads local plugins for development
 - ✅ `owner/repo:path` installs from repository subdirectories
-- ✅ `/plugin install` and `/plugin marketplace add` now support local paths with spaces
-- ✅ `/plugin install` hot-loads agents and skills — no CLI restart needed
-- ✅ Extensions (experimental) — runtime tools via `@github/copilot-sdk`
-- ✅ `/extensions` command to view, enable, and disable extensions
-- ✅ Open Plugins spec support for cross-platform compatibility
+- ✅ `copilot plugin install` installs from marketplaces, GitHub repos, repo subdirectories, or git URLs
+- ✅ `copilot plugin marketplace browse` discovers marketplace plugins
 - ✅ `copilot plugin marketplace update` refreshes plugin catalogs
-- ✅ Plugin hooks receive `PLUGIN_ROOT` env vars
-- ✅ Plugins display post-install messages after `/plugin install`
-
-> [!NOTE]
-> Local paths with spaces are supported in marketplace source configurations.
+- ✅ Plugins can bundle skills, agents, hooks, MCP servers, and LSP servers
 
 ## Next Steps
 

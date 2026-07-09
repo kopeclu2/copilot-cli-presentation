@@ -26,7 +26,7 @@ export COPILOT_HOME=/path/to/custom/config
 copilot
 ```
 
-> **Note:** The `--config-dir` flag is deprecated. Use the `COPILOT_HOME` environment variable instead. When you specify a custom config directory, the model preference stored in that directory's config.json is used instead of the default.
+When you specify a custom config directory, the model preference stored in that directory's config.json is used instead of the default.
 
 ### Configuration Options Reference
 
@@ -34,11 +34,11 @@ All options below are set in ~/.copilot/config.json:
 
 ```json
 {
-  "model": "claude-sonnet-4.6",
-  "theme": "auto",
+  "model": "auto",
+  "theme": "github",
   "mouse": true,
   "banner": "once",
-  "beep": true,
+  "beep": false,
   "stream": true,
   "autoUpdate": true,
   "bashEnv": false,
@@ -57,9 +57,6 @@ All options below are set in ~/.copilot/config.json:
   "continueOnAutoMode": false,
   "respectGitignore": true,
   "disableAllHooks": false,
-  "builtInAgents": {
-    "rubberDuck": true
-  },
   "ide": {
     "autoConnect": true,
     "openDiffOnEdit": true
@@ -77,10 +74,10 @@ All options below are set in ~/.copilot/config.json:
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `model` | string | (varies) | AI model to use; changeable via `/model` or `--model` |
-| `theme` | string | `"auto"` | Color theme: `"auto"`, `"dark"`, or `"light"` |
+| `theme` | string | `"github"` | Color theme: `"default"`, `"github"`, `"dim"`, `"high-contrast"`, or `"colorblind"` |
 | `mouse` | bool | `true` | Mouse support |
 | `banner` | string | `"once"` | Startup banner: `"always"`, `"never"`, or `"once"` |
-| `beep` | bool | `true` | Terminal beep when user attention is required |
+| `beep` | bool | `false` | Terminal beep when user attention is required |
 | `stream` | bool | `true` | Enable response streaming |
 | `autoUpdate` | bool | `true` | Auto-download CLI updates (disabled in CI by default) |
 | `bashEnv` | bool | `false` | Source BASH_ENV in shell sessions |
@@ -99,7 +96,6 @@ All options below are set in ~/.copilot/config.json:
 | `continueOnAutoMode` | bool | `false` | Auto-switch to auto mode on rate limit errors; does not apply to global limits |
 | `respectGitignore` | bool | `true` | Exclude gitignored files from the `@` file mention picker |
 | `disableAllHooks` | bool | `false` | Disable all hooks (repo-level and user-level) |
-| `builtInAgents.rubberDuck` | bool | `true` | Enable the rubber-duck subagent for adversarial feedback |
 | `ide.autoConnect` | bool | `true` | Auto-connect to IDE workspace on startup |
 | `ide.openDiffOnEdit` | bool | `true` | Open file edit diffs in connected IDE for approval |
 | `customAgents.defaultLocalOnly` | bool | `false` | Default to local agents only (skip remote org/enterprise agents) |
@@ -155,7 +151,6 @@ All options below are set in ~/.copilot/config.json:
 | `--reasoning-effort <level>` | Set reasoning effort level for model |
 | `--effort <level>` | Shorthand for `--reasoning-effort` |
 | `--context <tier>` | Set context window tier (`default` or `long_context`) |
-| `--binary-version` | Query CLI binary version without launching |
 | `--enable-reasoning-summaries` | Request reasoning summaries for OpenAI models |
 | `--connect[=sessionId]` | Connect directly to a remote session |
 
@@ -199,7 +194,15 @@ This displays documentation on configuring OpenTelemetry for Copilot CLI observa
 | `--max-autopilot-continues <n>` | Limit autopilot rounds (default: 5) |
 | `--no-ask-user` | Disable agent questions |
 | `--agent <agent>` | Use a specific custom agent |
-| `--additional-mcp-config <json>` | Add MCP config (repeatable) |
+| `--additional-mcp-config <json-or-@file>` | Add MCP config as inline JSON or an `@`-prefixed file path (repeatable) |
+| `--max-ai-credits <credits>` | Set a session AI credit limit |
+| `--session-id <id>` | Resume a session/task by ID or set a UUID for a new session |
+| `--remote-export` | Export session to GitHub web/mobile read-only |
+| `--no-remote` | Disable remote control |
+| `--no-remote-export` | Disable remote export |
+| `--enable-memory` | Enable memory in prompt mode |
+| `--allow-all-mcp-server-instructions` | Include initialization instructions from all MCP servers |
+| `--no-bash-env` | Disable BASH_ENV support |
 | `--add-github-mcp-tool <tool>` | Add GitHub MCP server tool (repeatable) |
 | `--add-github-mcp-toolset <set>` | Add GitHub MCP toolset (repeatable) |
 | `--enable-all-github-mcp-tools` | Enable all GitHub MCP tools |
@@ -283,7 +286,7 @@ You can view, modify, and verify config options and understand that certain CLI 
 2. Set the default model via environment:
 
    ```bash
-   export COPILOT_MODEL=gpt-5.4
+   export COPILOT_MODEL=auto
    copilot -p "What model are you using?"
    ```
 
@@ -302,7 +305,7 @@ You can view, modify, and verify config options and understand that certain CLI 
    ```bash
    export COPILOT_EDITOR="code --wait"
    copilot
-   # Ctrl+Y will now open the plan in VS Code
+   # Ctrl+Y opens the plan in VS Code
    ```
 
 5. Clean up:
@@ -355,14 +358,7 @@ You understand how Copilot integrates with IDEs and can customize the behavior.
 
 **Steps:**
 
-1. Enable streamer mode (hides model names and quota):
-
-   ```bash
-   copilot
-   /streamer-mode
-   ```
-
-   Or via config:
+1. Enable streamer mode (hides preview model names and quota details) in config:
 
    ```json
    { "streamerMode": true }
@@ -406,7 +402,7 @@ You can configure Copilot for streaming, screen readers, and plain-text environm
      "companyAnnouncements": [
        "Remember: never commit secrets to the repo",
        "Check the team wiki for coding standards",
-       "Sprint 14 ends Friday - update your PRs"
+       "Sprint ends this week - update your PRs"
      ]
    }
    ```
@@ -415,7 +411,7 @@ You can configure Copilot for streaming, screen readers, and plain-text environm
 
    ```json
    {
-     "model": "gpt-5.4",
+     "model": "auto",
      "includeCoAuthoredBy": true,
      "compactPaste": true,
      "updateTerminalTitle": true,
@@ -484,7 +480,7 @@ You can enable detailed logging and understand the log directory structure.
 - ✅ `includeCoAuthoredBy` auto-adds Co-authored-by to commits
 - ✅ `updateTerminalTitle` shows current intent in terminal title
 - ✅ IDE integration is controlled via `ide.autoConnect` and `ide.openDiffOnEdit`
-- ✅ `/ide` connects to IDE workspaces, `/streamer-mode` hides sensitive info
+- ✅ `/ide` connects to IDE workspaces, and `streamerMode` hides sensitive info
 - ✅ `/copy` copies last response to clipboard
 - ✅ Environment variables control auth, model, editor, and instruction paths
 - ✅ `COPILOT_HOME` overrides the config directory
@@ -493,12 +489,10 @@ You can enable detailed logging and understand the log directory structure.
 - ✅ `--screen-reader`, `--no-color`, `--plain-diff` for accessibility
 - ✅ `memory` config enables cross-session fact recall; toggle with `/memory on|off`
 - ✅ `terminalProgress` shows progress indicators in terminal title bar
-- ✅ `builtInAgents.rubberDuck` enables adversarial feedback subagent
 - ✅ Proxy support via `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` environment variables
 - ✅ `--reasoning-effort` flag controls model reasoning level
-- ✅ `--binary-version` checks installed version without launching
 - ✅ `/env` command shows loaded environment details
-- ✅ `COPILOT_HOME` overrides config directory (`--config-dir` is deprecated)
+- ✅ `COPILOT_HOME` overrides config directory
 - ✅ `copilot help monitoring` documents OpenTelemetry configuration
 - ✅ `keepAlive` prevents system sleep (off/on/busy)
 - ✅ `continueOnAutoMode` auto-switches to auto mode on rate limits
@@ -517,7 +511,7 @@ Congratulations on completing the GitHub Copilot CLI Workshop!
 1. **Installation** - Multiple methods to install and authenticate
 2. **Operating Modes** - Interactive, interactive-with-prompt (`-i`), programmatic (`-p`), and delegate
 3. **Sessions** - Management, persistence, and control
-4. **Instructions** - AGENTS.md, copilot-instructions.md, llm.txt
+4. **Instructions** - AGENTS.md, copilot-instructions.md, path-specific instructions
 5. **Tools** - Permissions, allow/deny, URL access, YOLO mode
 6. **MCP Servers** - Configuration, built-in GitHub MCP, custom integrations
 7. **Skills** - Creating and using specialized capabilities

@@ -159,9 +159,9 @@ copilot --bash-env
 export COPILOT_HOME=/custom/path
 
 # Auth tokens (in order of precedence)
-export COPILOT_GITHUB_TOKEN="ghp_..." # highest priority
-export GH_TOKEN="ghp_..."
-export GITHUB_TOKEN="ghp_..." # lowest priority
+export COPILOT_GITHUB_TOKEN="github_pat_..." # highest priority
+export GH_TOKEN="github_pat_..."
+export GITHUB_TOKEN="github_pat_..." # lowest priority
 ```
 
 ---
@@ -226,4 +226,3 @@ Installation → Modes → Sessions → Instructions → Tools
 **Next steps:** Practice daily, create custom agents, share skills with your team
 
 > Resources: [docs.github.com/copilot](https://docs.github.com/en/copilot) · [agentskills.io](https://agentskills.io)
-

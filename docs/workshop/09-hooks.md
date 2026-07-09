@@ -40,7 +40,7 @@ User Prompt → Session Start → Pre-Tool → Tool Execution → Post-Tool → 
 | `preCompact` | Before context compaction | Pre-compaction tasks, state saving |
 | `subagentStart` | Sub-agent is spawned | Context injection, logging |
 | `permissionRequest` | Tool permission requested | Programmatic approve/deny of tool permissions |
-| `notification` | Shell completion, permission prompts, elicitation, agent completion | External notification integration — MAJOR |
+| `notification` | Shell completion, permission prompts, elicitation, agent completion | External notification integration |
 
 ### Hook Locations
 
@@ -101,20 +101,20 @@ Hooks support three permission decisions in `preToolUse`:
 
 ### Hook Payload Fields
 
-> Hook payloads now use **PascalCase** field names alongside the existing camelCase names for cross-platform compatibility. New fields include:
+> Hook payloads use **PascalCase** field names alongside camelCase names for cross-platform compatibility. Fields include:
 > - `hook_event_name` — the event type (e.g., `"PreToolUse"`, `"SessionStart"`)
 > - `session_id` — the session identifier
-> - ISO 8601 timestamps — timestamps are now formatted as ISO 8601 strings in addition to Unix milliseconds
+> - ISO 8601 timestamps — timestamps are formatted as ISO 8601 strings in addition to Unix milliseconds
 >
 > Both camelCase and PascalCase field names work; the PascalCase additions improve compatibility with VS Code and Claude Code hook configurations.
 
 ### Plugin Hook Environment
 
-> Plugin hooks now receive `PLUGIN_ROOT` environment variables pointing to the plugin's installation directory. This allows hook scripts packaged with plugins to reference sibling files reliably.
+> Plugin hooks receive `PLUGIN_ROOT` environment variables pointing to the plugin's installation directory. This allows hook scripts packaged with plugins to reference sibling files reliably.
 
-### Notification Hook Event — MAJOR
+### Notification Hook Event
 
-> The new `notification` hook event fires on:
+> The `notification` hook event fires on:
 > - **Shell completion** — when a background shell command finishes
 > - **Permission prompts** — when the agent requests tool permission
 > - **Elicitation** — when the agent asks the user a question
@@ -154,7 +154,6 @@ Hooks support three permission decisions in `preToolUse`:
    ```bash
    cat > .github/hooks/hooks.json << 'EOF'
    {
-     "version": 1,
      "hooks": {
        "sessionStart": [],
        "sessionEnd": [],
@@ -190,7 +189,6 @@ Hooks configuration file ready for customization.
    ```bash
    cat > .github/hooks/hooks.json << 'EOF'
    {
-     "version": 1,
      "hooks": {
        "sessionStart": [
          {
@@ -258,7 +256,6 @@ Sessions are logged with timestamps and duration:
    ```bash
    cat > .github/hooks/hooks.json << 'EOF'
    {
-     "version": 1,
      "hooks": {
        "sessionStart": [
          {
@@ -389,7 +386,6 @@ All prompts logged with timestamps:
    ```bash
    cat > .github/hooks/hooks.json << 'EOF'
    {
-     "version": 1,
      "hooks": {
        "sessionStart": [
          {
@@ -482,7 +478,6 @@ Copilot shows: "Denied by preToolUse hook: Command 'sudo' is not allowed by poli
    ```bash
    cat > .github/hooks/hooks.json << 'EOF'
    {
-     "version": 1,
      "hooks": {
        "sessionStart": [
          {
@@ -570,7 +565,6 @@ All tool executions are logged with results:
    ```bash
    cat > .github/hooks/hooks.json << 'EOF'
    {
-     "version": 1,
      "hooks": {
        "sessionStart": [
          {
@@ -663,7 +657,6 @@ All tool executions are logged with results:
    ```bash
    cat > .github/hooks/hooks.json << 'EOF'
    {
-     "version": 1,
      "hooks": {
        "sessionStart": [],
        "sessionEnd": [],

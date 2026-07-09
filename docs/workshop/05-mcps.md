@@ -35,61 +35,54 @@ Model Context Protocol (MCP) is an open standard that extends AI capabilities:
 
 ### Debugging MCP Servers
 
-MCP server errors now surface directly in the session output, making it easier to diagnose connection and configuration issues. Errors are displayed inline when:
+MCP server errors surface directly in session output and in MCP server details, making it easier to diagnose connection and configuration issues. Errors are displayed when:
 - A server fails to start
 - A connection cannot be established
 - A tool invocation fails
 - Configuration is invalid
 
-Use `/mcp show` to check which servers are connected and their current status.
-
-> [!WARNING]
-> MCP error visibility significantly improves the debugging experience when working with custom MCP servers, as errors are no longer silently ignored.
+Use `/mcp` inside a session or `copilot mcp list` / `copilot mcp get <name>` from your shell to inspect configured servers and their status.
 
 ### Server Types
 
 | Type | Protocol Name | Location | Use Case |
 |------|---------------|----------|----------|
 | Remote (HTTP) | `http` | Hosted externally | Team-wide tools, cloud services |
-| Remote (SSE) | `sse` | Hosted externally | Legacy HTTP+SSE transport (deprecated in MCP spec) |
+| Remote (SSE) | `sse` | Hosted externally | HTTP+SSE transport |
 | Local (STDIO) | `local` or `stdio` | Runs on your machine | Local resources, custom tools |
 | Built-in | N/A | Included with Copilot | GitHub integration |
 
-> **Note:** `local` and `stdio` are equivalent — `stdio` is the standard MCP protocol name, so choose it if you want configuration compatible with VS Code and other MCP clients. Similarly, `http` uses Streamable HTTP and `sse` uses the legacy Server-Sent Events transport.
+> **Note:** `local` and `stdio` are equivalent in Copilot CLI configuration. The `copilot mcp add` command uses the transport names `stdio`, `http`, and `sse`.
 
 ### Configuration Location
 
 > **Note:** Copilot CLI reads MCP configuration from:
 > - `~/.copilot/mcp-config.json` (user-level)
 > - `.mcp.json` (project-level, in repository root)
-> - `.devcontainer/devcontainer.json` (DevContainer environments)
+> - `.github/mcp.json` (workspace-level)
+> - Installed plugins that bundle MCP servers
 
 MCP servers are configured in:
 - Default: `~/.copilot/mcp-config.json` (user) or `.mcp.json` (project)
 - Custom: Set via `COPILOT_HOME`
 
-### DevContainer MCP Configuration
+Workspace and plugin MCP servers are merged with your personal `~/.copilot/mcp-config.json` configuration.
 
-> Copilot CLI reads MCP server configuration from `.devcontainer/devcontainer.json`. This allows Dev Container and Codespaces environments to pre-configure MCP servers for all users.
+### Workspace MCP Configuration
+
+Workspace MCP configuration can live in `.mcp.json` or `.github/mcp.json`:
 
 ```json
-// .devcontainer/devcontainer.json
 {
-  "customizations": {
-    "copilot": {
-      "mcpServers": {
-        "memory": {
-          "type": "local",
-          "command": "npx",
-          "args": ["-y", "@modelcontextprotocol/server-memory"]
-        }
-      }
+  "mcpServers": {
+    "memory": {
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
     }
   }
 }
 ```
-
-MCP servers defined in `devcontainer.json` are merged with your personal `~/.copilot/mcp-config.json` configuration.
 
 ### Enterprise Policy Enforcement
 
@@ -98,26 +91,11 @@ MCP servers defined in `devcontainer.json` are merged with your personal `~/.cop
 
 > MCP policy enforcement requires a Copilot Enterprise or Business subscription with organization-level policy management. Behavior may vary depending on how your org admin has configured the policy.
 
-### Install MCP Servers from Registry — MAJOR
-
-> You can install MCP servers directly from the MCP registry with guided configuration:
->
-> ```
-> /mcp install
-> ```
->
-> This provides:
-> - **Registry browsing** — search and discover MCP servers from the registry
-> - **Guided configuration** — interactive setup with prompted fields for API keys, URLs, and options
-> - **Automatic config updates** — the selected server is added to your MCP config automatically
->
-> This is the recommended way to add new MCP servers, as it handles configuration correctly without manual JSON editing.
-
-### `copilot mcp` CLI Command — MAJOR
+### `copilot mcp` CLI Command
 
 > The `copilot mcp` top-level command lets you manage MCP servers directly from the command line without starting an interactive session:
 >
-> ```bash
+> ```text
 > # List configured MCP servers
 > copilot mcp list
 >
@@ -131,26 +109,26 @@ MCP servers defined in `devcontainer.json` are merged with your personal `~/.cop
 > copilot mcp add --transport http --header "Authorization: Bearer token" stripe https://mcp.stripe.com
 >
 > # Add a local server with environment variables
-> copilot mcp add github --env GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxx -- npx -y @modelcontextprotocol/server-github
+> copilot mcp add github --env GITHUB_PERSONAL_ACCESS_TOKEN=github_pat_xxx -- npx -y @modelcontextprotocol/server-github
 >
 > # Remove an MCP server
-> copilot mcp remove <name>
+> copilot mcp remove memory
 >
 > # Show details for a specific server
-> copilot mcp get <name>
+> copilot mcp get memory
 > ```
 >
-> Additional options for `mcp add`: `--transport` (stdio/http/sse), `--env` (repeatable), `--header` (repeatable), `--timeout`, `--tools` (filter).
+> Additional options for `mcp add`: `--transport` (stdio/http/sse), `--env` (repeatable), `--header` (repeatable), `--timeout`, `--tools` (filter), `--json`, and `--show-secrets`.
 >
 > This is useful for scripting MCP configuration and managing servers in CI/CD environments.
 
 ### MCP Remote Server Auto-Retry
 
-> Remote MCP servers (HTTP/SSE) now automatically retry on transient network failures (connection timeouts, temporary DNS failures, HTTP 5xx errors). The retry uses exponential backoff with up to 3 attempts before surfacing the error.
+Remote MCP servers (HTTP/SSE) retry transient network failures such as connection timeouts, temporary DNS failures, and HTTP 5xx errors before surfacing the error.
 
 ### MCP OAuth HTTPS Redirect
 
-> MCP servers using OAuth authentication now support HTTPS redirect URIs via a self-signed certificate fallback. This enables OAuth flows in environments where only HTTPS redirect URIs are permitted by the identity provider.
+MCP servers using OAuth authentication support HTTPS redirect URIs via a self-signed certificate fallback. This enables OAuth flows in environments where only HTTPS redirect URIs are permitted by the identity provider.
 
 ### Built-in GitHub MCP Server Controls
 
@@ -190,10 +168,10 @@ Use `--add-github-mcp-tool "*"` or `--add-github-mcp-toolset "all"` to enable ev
 
 2. View current MCP configuration:
  ```
- /mcp show
+ /mcp
  ```
 
- > `/mcp show` groups servers into **User**, **Workspace**, **Plugins**, and **Built-in** sections for easier navigation.
+ > The MCP view lists configured servers by source, including user, workspace, plugin, and built-in servers.
 
 3. The GitHub MCP server is pre-configured. Try using it:
  ```
@@ -230,29 +208,17 @@ Copilot can access GitHub resources through the built-in MCP server.
  cat ~/.copilot/mcp-config.json
  ```
 
-2. Start Copilot and use the interactive MCP setup:
+2. Add the server with `copilot mcp add`:
  ```bash
- copilot
- ```
- ```
- /mcp add
+ copilot mcp add --transport http exa https://mcp.exa.ai/mcp
  ```
 
-3. Use Tab to navigate between fields:
- - **Server Name**: `exa`
- - **Server Type**: Select HTTP (for remote servers)
- - **URL**: `https://mcp.exa.ai/mcp`
- - **HTTP Headers**: (leave empty — Exa's public tools don't require auth)
- - **Tools**: `*` (all tools, the default)
-
-4. Press `Ctrl+S` to save. The server is available immediately — no restart needed.
-
-5. Verify the configuration:
- ```
- /mcp show
+3. Verify the configuration:
+ ```bash
+ copilot mcp get exa
  ```
 
-6. Alternatively, edit the config file directly:
+4. Alternatively, edit the config file directly:
  ```bash
  cat > ~/.copilot/mcp-config.json << 'EOF'
  {
@@ -269,15 +235,18 @@ Copilot can access GitHub resources through the built-in MCP server.
 
  > **Note:** Exa's public tools (web search, code search, company research) don't require authentication. Only the corporate/enterprise Exa tools require an API key or OAuth.
  >
- > When editing the config file directly, restart the CLI or use `/mcp reload` to pick up changes.
+ > When editing the config file directly, start a new CLI session or run `copilot mcp list` to verify the stored configuration.
 
-7. Test the Exa search tools:
+5. Test the Exa search tools:
+ ```bash
+ copilot
  ```
- Search the web for the latest GitHub Copilot CLI features
+ ```
+ Search the web for current GitHub Copilot CLI features
  ```
 
 **Expected Outcome:**
-Remote Exa MCP server configured. Copilot can now perform web searches, code searches, and company research via Exa tools.
+Remote Exa MCP server configured. Copilot can perform web searches, code searches, and company research via Exa tools.
 
 ### Exercise 3: Add a Local MCP Server
 
@@ -321,9 +290,9 @@ Remote Exa MCP server configured. Copilot can now perform web searches, code sea
  copilot
  ```
 
-4. Verify the server is loaded:
- ```
- /mcp show
+4. Verify the server is configured:
+ ```bash
+ copilot mcp list
  ```
 
 5. Test the memory server:
@@ -352,7 +321,7 @@ Local MCP server runs and provides additional capabilities.
 
  > **Note:** The `~/projects` directory must exist before the filesystem server can start. Create it first with `mkdir -p ~/projects` if needed.
 
-2. Update MCP config with directory restrictions (using tilde expansion):
+2. Update MCP config with directory restrictions:
  ```bash
  cat > ~/.copilot/mcp-config.json << 'EOF'
  {
@@ -368,9 +337,9 @@ Local MCP server runs and provides additional capabilities.
  "args": [
  "-y",
  "@modelcontextprotocol/server-filesystem",
- "~/projects"
+ "/home/user/projects"
  ],
- "cwd": "~/projects",
+ "cwd": "/home/user/projects",
  "tools": ["*"]
  }
  }
@@ -378,17 +347,17 @@ Local MCP server runs and provides additional capabilities.
  EOF
  ```
 
- Note: You can use `~` for home directory in both args and `cwd`.
+ Replace `/home/user/projects` with an absolute path on your machine.
 
 
-3. Restart Copilot (or use `/mcp reload`+):
+3. Restart Copilot:
  ```bash
  copilot
  ```
 
 4. Check for any MCP server errors:
  ```
- /mcp show
+ /mcp
  ```
 
  If there are configuration issues, server status will indicate errors here.
@@ -399,59 +368,57 @@ Local MCP server runs and provides additional capabilities.
  ```
 
 **Expected Outcome:**
-MCP server provides structured file access with defined boundaries. Any startup errors are visible via `/mcp show`.
+MCP server provides structured file access with defined boundaries. Any startup errors are visible in the MCP view.
 
 ### Exercise 5: MCP Server Management Commands
 
-**Goal:** Master MCP management through slash commands.
+**Goal:** Master MCP management through the CLI command and interactive MCP view.
 
 **Steps:**
 
-1. Start Copilot:
+1. **List all servers:**
+ ```bash
+ copilot mcp list
+ ```
+
+2. **Show details for a server:**
+ ```bash
+ copilot mcp get memory
+ ```
+
+3. **Add a new local server:**
+ ```bash
+ copilot mcp add context7 -- npx -y @upstash/context7-mcp
+ ```
+
+4. **Add a remote server with a header:**
+ ```bash
+ copilot mcp add --transport http \
+   --header "Authorization: Bearer $TOKEN" \
+   stripe https://mcp.stripe.com
+ ```
+
+5. **Use JSON output for scripts:**
+ ```bash
+ copilot mcp list --json
+ copilot mcp get memory --json
+ ```
+
+6. **Remove a server:**
+ ```bash
+ copilot mcp remove memory
+ ```
+
+7. **Open the interactive MCP view inside a session:**
  ```bash
  copilot
  ```
-
-2. **Show all servers:**
  ```
- /mcp show
- ```
-
-3. **Add a new server interactively:**
- ```
- /mcp add
- ```
- Fill in details and `Ctrl+S` to save.
-
-4. **Edit an existing server:**
- ```
- /mcp edit memory
- ```
-
-5. **Reload configuration without restarting**:
- ```
- /mcp reload
- ```
-
- This is useful when you've edited `~/.copilot/mcp-config.json` directly or want to pick up changes without exiting your current session.
-
-6. **Disable a server temporarily:**
- ```
- /mcp disable memory
- ```
-
-7. **Re-enable it:**
- ```
- /mcp enable memory
- ```
-
-8. **Delete a server:**
- ```
- /mcp delete memory
+ /mcp
  ```
 
 **Expected Outcome:**
-You can manage MCP servers without editing config files, and reload configuration changes instantly.
+You can manage MCP servers without editing config files and inspect them interactively.
 
 ### Exercise 6: Using MCP Tools with Permissions
 
@@ -511,16 +478,16 @@ MCP server tools follow the same permission model as built-in tools.
 
  > **Note:** The [Microsoft Learn MCP Server](https://github.com/microsoftdocs/mcp) is free and requires no API key. It provides tools for searching Microsoft docs, fetching documentation pages, and finding code samples.
 
-2. Start Copilot with the additional config (pass the JSON string, not the file path as `--additional-mcp-config` expects inline JSON):
+2. Start Copilot with the additional config:
  ```bash
- copilot --additional-mcp-config "$(cat /tmp/temp-mcp.json)"
+ copilot --additional-mcp-config @/tmp/temp-mcp.json
  ```
 
 3. The temporary servers are available for this session only.
 
 4. Verify:
- ```
- /mcp show
+ ```bash
+ copilot mcp list
  ```
 
 5. The base config + temporary config are merged.
@@ -607,14 +574,18 @@ MCP server names (the keys in `"mcpServers"`) support dots (`.`), slashes (`/`),
 
 | Command | Description |
 |---------|-------------|
-| `/mcp show` | Display all MCP servers (grouped by source) |
-| `/mcp show NAME` | View details and tools for a specific server |
-| `/mcp add` | Add a new server interactively (available immediately) |
-| `/mcp edit NAME` | Edit an existing server |
-| `/mcp delete NAME` | Remove a server |
-| `/mcp disable NAME` | Temporarily disable (persists across sessions) |
-| `/mcp enable NAME` | Re-enable a disabled server (persists across sessions) |
-| `/mcp reload` | Reload MCP configuration without restarting |
+| `/mcp` | Open the interactive MCP server view |
+
+### Shell Commands
+
+| Command | Description |
+|---------|-------------|
+| `copilot mcp list` | List configured MCP servers |
+| `copilot mcp list --json` | List servers as JSON |
+| `copilot mcp get NAME` | Show details for a specific server |
+| `copilot mcp add NAME -- COMMAND [ARGS...]` | Add a local stdio server |
+| `copilot mcp add --transport http NAME URL` | Add a remote HTTP server |
+| `copilot mcp remove NAME` | Remove a server |
 
 ## Summary
 
@@ -624,25 +595,16 @@ MCP server names (the keys in `"mcpServers"`) support dots (`.`), slashes (`/`),
 - ✅ `--disable-builtin-mcps` and `--disable-mcp-server` for disabling servers
 - ✅ Local servers run on your machine for local resources
 - ✅ Remote servers connect to external services
-- ✅ `/mcp` commands manage servers without editing files
-- ✅ `/mcp reload` reloads configuration without restarting
-- ✅ `/mcp auth` re-authenticates MCP OAuth servers with account switching support
-- ✅ MCP OAuth supports device code flow (RFC 8628) for headless/CI environments
+- ✅ `copilot mcp` commands manage servers without editing files
 - ✅ MCP tool calls display tool name and parameter summary in the timeline
 - ✅ MCP servers can request LLM inference (sampling) with user approval
-- ✅ Tilde (`~`) expansion works in `cwd` paths
 - ✅ MCP server errors surface in session output for easier debugging
-- ✅ Giant single-line MCP tool results are now truncated correctly
 - ✅ Org admins can block third-party MCP servers via policy enforcement
 - ✅ Server names support npm-style identifiers with `.`, `/`, `@`
-- ✅ Env vars referenced in `command`/`args`/`cwd` are auto-inherited
 - ✅ `--additional-mcp-config` loads temporary servers
-- ✅ MCP config from `.devcontainer/devcontainer.json`
-- ✅ `.vscode/mcp.json` removed as config source — use `.mcp.json` instead
-- ✅ Install MCP servers from registry with `/mcp install` guided setup
+- ✅ MCP config loads from user, workspace, plugin, and built-in sources
 - ✅ `copilot mcp` CLI command for managing servers from the command line
 - ✅ Remote server auto-retry on transient network failures
-- ✅ `/mcp enable`/`disable` state persists across sessions
 - ✅ MCP OAuth HTTPS redirect URI via self-signed cert fallback
 
 ## Next Steps

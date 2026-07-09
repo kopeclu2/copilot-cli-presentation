@@ -11,6 +11,7 @@
 - Discover and use slash commands (`/command`) for CLI control
 - Use `/plan`, `/review`, and `/diff` for structured workflows
 - Use the delegate (`/delegate`) command to hand off to cloud agents
+- Use built-in agent workflows such as `/research`, `/fleet`, and `/rubber-duck`
 - Control tool approval during interactions
 - Choose the right mode for different scenarios
 
@@ -98,14 +99,15 @@ Slash commands are prefixed with `/` and provide quick access to CLI features wi
 | **Context** | `/context`, `/compact` | Monitor and optimize token usage |
 | **Quick** | `/ask` | Ask a quick question without affecting conversation history |
 | **Environment** | `/env` | Show loaded environment details (instructions, MCPs, skills, plugins) |
-| **Tools** | `/allow-all [on\|off\|show]`, `/yolo`, `/reset-allowed-tools` | Manage tool permissions at runtime |
-| **Review** | `/diff`, `/review`, `/plan`, `/research`, `/undo`, `/rewind` | Code review, planning, history navigation |
-| **Configuration** | `/model`, `/mcp`, `/theme`, `/terminal-setup`, `/experimental`, `/streamer-mode`, `/instructions` | Customize CLI behavior |
+| **Tools** | `/allow-all`, `/reset-allowed-tools` | Manage tool permissions at runtime |
+| **Review** | `/diff`, `/review`, `/rubber-duck`, `/security-review`, `/plan`, `/research`, `/undo`, `/rewind` | Code review, critique, planning, history navigation |
+| **Configuration** | `/model`, `/mcp`, `/plugin`, `/theme`, `/terminal-setup`, `/experimental`, `/instructions`, `/settings`, `/subagents` | Customize CLI behavior |
 | **Extensibility** | `/skills`, `/plugin`, `/agent`, `/fleet` | Manage skills, plugins, agents, and parallel execution |
+| **Scheduling** | `/after`, `/every` | Schedule one-shot or recurring prompts and skills |
 | **Sharing** | `/share`, `/share html`, `/feedback`, `/copy` | Export sessions, copy responses, and submit feedback |
 | **Account** | `/login`, `/logout`, `/user` | Authentication and user management |
 | **IDE** | `/ide` | Connect to IDE workspace |
-| **System** | `/help`, `/exit`, `/quit`, `/init`, `/tasks`, `/sidekicks`, `/lsp`, `/update`, `/restart`, `/changelog`, `/chronicle`, `/search`, `/keep-alive` | General utilities and productivity |
+| **System** | `/help`, `/exit`, `/init`, `/tasks`, `/lsp`, `/update`, `/restart`, `/chronicle`, `/search`, `/keep-alive`, `/limits`, `/diagnose`, `/app` | General utilities and productivity |
 
 #### Keyboard Shortcuts
 
@@ -174,7 +176,8 @@ Some commands are covered in depth in later modules (`/mcp` in Module 5, `/skill
 | --- | --- |
 | `/plan [prompt]` | Ask Copilot to create an implementation plan before writing code |
 | `/review [prompt]` | Run a code review agent to analyze changes |
-| `/diff` | Review all changes with syntax highlighting (17 languages); supports Home/End and Page Up/Page Down navigation |
+| `/rubber-duck [prompt]` | Get high-signal critique of a plan, design, or implementation |
+| `/diff` | Review all changes with syntax highlighting (17 languages); supports Home/End and Page Up/PageDown navigation |
 | `/init` | Initialize Copilot instructions and agentic features for a repository |
 | `/tasks` | View and manage background tasks (subagents, shell sessions) |
 | `/rename <name>` | Rename the current session for easy identification; omit name to auto-generate from conversation history |
@@ -182,34 +185,37 @@ Some commands are covered in depth in later modules (`/mcp` in Module 5, `/skill
 | `/terminal-setup` | Configure terminal for multiline input support (shift+enter) |
 | `/lsp` | View configured Language Server Protocol servers |
 | `/user [show\|list\|switch]` | Manage GitHub user list (multi-account support) |
-| `/update` | View update instructions for the latest Copilot CLI version |
-| `/changelog` | View the changelog for recent Copilot CLI releases |
+| `/update` | Update the CLI |
 | `/research [prompt]` | Perform deep research with exportable reports |
 | `/chronicle [standup\|tips\|improve]` | ⚠️ **Experimental** — Productivity insights powered by session history |
 | `/copy` | Copy the last response to the system clipboard |
 | `/ide` | Connect to an IDE workspace (VS Code, etc.) for diagnostics and diff review |
 | `/restart` | Hot restart the CLI while preserving your session |
 | `/version` | Display CLI version and check for updates |
-| `/streamer-mode` | Toggle streamer mode — hides preview model names and quota details |
-| `/undo` | Undo the last turn and revert file changes |
+| `/undo` | Undo the last turn when possible |
 | `/rewind` | Open a timeline picker to roll back to any point in conversation history (also via double-Esc) |
 | `/new [prompt]` | Start a fresh conversation (keeps old session backgrounded); optionally provide a first message |
 | `/clear [prompt]` | Abandon the current session entirely; optionally provide a first message for the new session |
 | `/allow-all [on\|off\|show]` | Enable, disable, or check allow-all (YOLO) mode |
 | `/share html` | Export session as a self-contained interactive HTML file |
-| `/mcp auth` | Re-authenticate MCP OAuth servers with account switching support |
-| `/sidekicks` | View running sidekick agents |
 | `/keep-alive [on\|off\|busy]` | Manage keep-alive mode — prevents system sleep while session is active |
 | `/search` | Search the conversation timeline |
+| `/limits` | View or edit session limits, including AI credit limits |
+| `/memory [on\|off]` | Show or change cross-session memory status |
+| `/pr` | Operate on pull requests for the current branch |
+| `/lsp` | Manage language server configuration |
+| `/subagents` | Configure default and per-agent subagent models |
+| `/after <delay> <prompt>` | Schedule a one-shot prompt or skill to run later |
+| `/every <interval> <prompt>` | Schedule a recurring prompt or skill |
 
-#### New Commands
+#### Commands Available During Agent Work
 
 | Command | Description |
 | --- | --- |
 | `/ask [prompt]` | Ask a quick question without affecting conversation history — response is not added to context |
 | `/env` | Show loaded environment details — lists active instructions, MCPs, skills, and plugins |
 | `/remote` | Start or manage a remote control session |
-| `/diff`, `/agent`, `/feedback`, `/ide`, `/tuikit` | These commands work while the agent is running — no need to wait for completion |
+| `/diff`, `/agent`, `/feedback`, `/ide` | These commands work while the agent is running — no need to wait for completion |
 
 #### Startup Flags
 
@@ -218,10 +224,39 @@ Some commands are covered in depth in later modules (`/mcp` in Module 5, `/skill
 | `--mode <mode>` | Start CLI directly in a specific mode (`interactive`, `plan`, `autopilot`) |
 | `--autopilot` | Start CLI directly in autopilot mode |
 | `--plan` | Start CLI directly in plan mode |
+| `--agent <agent>` | Start with a specific agent, such as `rubber-duck` for high-signal critique |
 | `-n, --name <name>` | Set a name for the new session |
 | `--connect[=sessionId]` | Connect directly to a remote session (optionally specify session ID or task ID) |
 | `--remote` | Start a remote control session |
 | `--enable-reasoning-summaries` | Request reasoning summaries for OpenAI models |
+
+#### Rubber-Duck Feedback Mode
+
+Use the `rubber-duck` agent when you want focused critique of a plan, design, or implementation:
+
+```
+/rubber-duck Review this implementation plan for logic errors and missed edge cases
+```
+
+You can also start a session directly with the same agent:
+
+```bash
+copilot --agent rubber-duck
+```
+
+The rubber-duck agent looks for bugs, logic errors, and design flaws without turning the session into a broad style review.
+
+#### Security Review Mode
+
+Use `/security-review` when you want Copilot to analyze staged and unstaged changes for security vulnerabilities:
+
+```
+/security-review Check these changes for exploitable security issues
+```
+
+Use it before opening a pull request or after making authentication, authorization, dependency, input-handling, or secrets-related changes.
+
+The security review focuses on high-confidence security findings rather than general code style.
 
 > `/research` and `/chronicle` are experimental. `/chronicle` subcommands (`standup`, `tips`, `improve`) and behavior are subject to change.
 
@@ -335,7 +370,7 @@ You can use `/plan` for structured implementation, `/diff` to review changes, an
  /init
  ```
 
-3. This creates starter files like `AGENTS.md` and `.github/copilot-instructions.md`.
+3. This generates `.github/copilot-instructions.md` with repository guidance.
 
 4. Rename this session for easy identification:
  ```
@@ -495,6 +530,7 @@ Commands execute and exit without entering interactive mode.
 
 1. Create a script `analyze.sh`:
  ```bash
+ cat > analyze.sh << 'EOF'
  #!/bin/bash
 
  echo "=== Project Analysis ==="
@@ -507,6 +543,7 @@ Commands execute and exit without entering interactive mode.
 
  # Check for issues
  copilot -p "Look for any TODO comments in Python files" --allow-tool 'shell'
+ EOF
  ```
 
 2. Make it executable:
@@ -594,7 +631,7 @@ A draft PR is created and the cloud agent begins working asynchronously.
 | Learning a new codebase | Interactive |
 | Debugging an issue | Interactive |
 | CI/CD pipeline task | Programmatic |
-| Generate release notes | Programmatic |
+| Summarize changes | Programmatic |
 | Major refactoring | Delegate |
 | Implement new feature | Delegate |
 | Quick code review | Interactive |
@@ -644,8 +681,12 @@ You can choose the appropriate mode for any task.
 - ✅ `/ask` asks a quick question without affecting conversation history
 - ✅ `/env` shows loaded environment details
 - ✅ `--mode`, `--autopilot`, `--plan` flags start CLI in a specific mode
-- ✅ `--remote` and `/remote` for remote control sessions (replaces "steering")
-- ✅ `/diff`, `/agent`, `/feedback`, `/ide`, `/tuikit` work while agent is running
+- ✅ `/rubber-duck` starts a critique-focused feedback turn inside an interactive session
+- ✅ `--agent rubber-duck` starts a critique-focused feedback session
+- ✅ `/after` and `/every` schedule one-shot and recurring prompts
+- ✅ `/undo` undoes the last turn when possible
+- ✅ `--remote` and `/remote` for remote control sessions
+- ✅ `/diff`, `/agent`, `/feedback`, and `/ide` work while agent is running
 - ✅ `Alt+D` deletes word forward in text input
 - ✅ `ctrl+o` expands all timeline entries (same as `ctrl+e`)
 - ✅ `Ctrl+L` clears terminal screen without clearing session

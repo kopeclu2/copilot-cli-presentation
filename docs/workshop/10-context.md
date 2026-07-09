@@ -39,19 +39,8 @@ Context is everything Copilot "remembers" during a session:
 
 ### Token Limits
 
-> The model names and token limits below are **illustrative examples**. Actual available models change over time — run `/model` in your session to see the current list.
-
-| Model (example) | Approximate Limit |
-|-------|-------------------|
-| GPT-4.1 | ~128K tokens |
-| GPT-5.4 | ~128K tokens |
-| Claude Sonnet 4.6 | ~200K tokens |
-| Claude Opus 4.6 | ~200K tokens |
-
 > [!NOTE]
-> Use `/model` to select a model and `/context` to see context window usage. The model list changes frequently; available models at the time of writing include: claude-sonnet-4.6, claude-opus-4.8, claude-opus-4.6, gpt-5.5, gpt-5.4, gpt-5.2, and others.
->
-> Model availability may vary by Copilot subscription tier.
+> Use `/model` to select a model and `/context` to see context window usage. Run `/model` or `copilot help config` to see the current model list. Model availability may vary by Copilot subscription tier.
 
 ### Context Window Tier
 
