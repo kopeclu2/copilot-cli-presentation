@@ -61,19 +61,19 @@ style: |
 
 ## Topics
 
-- Configuration file (`config.json`) options
+- User settings (`settings.json`) and settings scopes
 - Environment variables reference
 - CLI flags quick reference
 - IDE integration (`/ide`, `openDiffOnEdit`)
 - Accessibility & streamer mode
 - Team configuration standardization
-- Logging and debugging
+- Logging, debugging, and session limits
 
 ---
 
 ## Configuration File
 
-All settings live in `~/.copilot/config.json`:
+User settings live in `~/.copilot/settings.json`:
 
 ```json
 {
@@ -90,6 +90,21 @@ All settings live in `~/.copilot/config.json`:
 
 Override location: `COPILOT_HOME` env var
 
+> ⚠️ `~/.copilot/config.json` is machine-managed and holds your auth token — **never print or share it**
+
+---
+
+## Settings Scopes
+
+| Scope | Location | Set with |
+|-------|----------|----------|
+| User | `~/.copilot/settings.json` | `/settings <key> <value>` |
+| Repo (shared) | `.github/copilot/settings.json` | `/settings --repo ...` |
+| Repo (personal) | `.github/copilot/settings.local.json` | `/settings --local ...` |
+| Org-managed | Delivered by policy | Read-only, `managed (read-only)` |
+
+Managed settings apply on top of yours and cannot be edited from the CLI
+
 ---
 
 ## Key Config Options
@@ -104,6 +119,10 @@ Override location: `COPILOT_HOME` env var
 | `companyAnnouncements` | `[]` | Team startup messages |
 | `ide.autoConnect` | `true` | Auto-connect to IDE |
 | `ide.openDiffOnEdit` | `true` | Diffs in IDE |
+| `footer.show*` | (varies) | Individual status bar items |
+| `sandbox.*` | (varies) | Command sandboxing policy |
+
+> `copilot help config` is the authoritative reference
 
 ---
 
@@ -116,9 +135,13 @@ Override location: `COPILOT_HOME` env var
 | `COPILOT_MODEL` | Default model |
 | `COPILOT_CUSTOM_INSTRUCTIONS_DIRS` | Extra instruction dirs |
 | `COPILOT_EDITOR` | Editor for plans/prompts |
+| `COPILOT_PROVIDER_*` | Custom model provider (BYOK) |
+| `COPILOT_OTEL_*` / `OTEL_*` | OpenTelemetry monitoring |
 | `PLAIN_DIFF` | Disable rich diffs |
 | `USE_BUILTIN_RIPGREP` | Set `false` to use PATH ripgrep |
 | `NO_COLOR` | Disable color output |
+
+> `copilot help environment` is the authoritative reference
 
 ---
 
@@ -150,12 +173,12 @@ Override location: `COPILOT_HOME` env var
 ```
 /ide          # Connect to IDE workspace
 /copy         # Copy last response to clipboard
-config.json: "streamerMode": true
+/settings streamerMode on
 ```
 
 Config options:
-- `ide.autoConnect` -- auto-connect on startup
-- `ide.openDiffOnEdit` -- show diffs in IDE
+- `ide.autoConnect` — auto-connect on startup
+- `ide.openDiffOnEdit` — show diffs in IDE
 
 ---
 
@@ -172,17 +195,60 @@ Config options:
 }
 ```
 
-Distribute via shared config templates in your repo.
+Share via repository settings:
+
+```
+/settings --repo model auto     # .github/copilot/settings.json
+/settings --local theme dim     # settings.local.json (uncommitted)
+```
 
 ---
 
-## Your Turn!
+## Session Limits
 
-### Recommended exercises from Module 13:
+Opt-in soft cap on AI credits for a session
 
-1. **Exercise 1** -- Explore config.json options
-2. **Exercise 2** -- Environment variable control
-3. **Exercise 3** -- IDE integration
-4. **Exercise 4** -- Streamer mode & accessibility
-5. **Exercise 5** -- Team configuration
-6. **Exercise 6** -- Logging and debugging
+```bash
+copilot --max-ai-credits 30     # minimum is 30
+```
+
+```
+/limits                          # interactive dialog
+/limits set max-ai-credits 50
+/limits predict
+/limits unset max-ai-credits
+```
+
+> Usage is only known after a response returns, so one call can
+> exceed the limit before the next one is blocked
+
+---
+
+## Your Turn! 🚀
+
+Open **Module 13** in `docs/workshop/13-configuration.md`
+
+**Start from Exercise 1** and work through as many as you can
+
+- **Exercise 1** — Explore settings.json and settings scopes
+- **Exercise 2** — Environment variable control
+- **Exercise 3** — IDE integration
+- **Exercise 4** — Streamer mode & accessibility
+- **Exercise 5** — Team configuration
+- **Exercise 6** — Logging and debugging
+- **Exercise 7** — Session limits and AI credits
+
+⏱️ You have **~14 minutes**
+
+---
+
+# 🎉 Workshop Complete!
+
+### What you've learned across all modules:
+
+Installation → Modes → Instructions → Tools → MCP → Skills → Plugins
+→ Agents → Hooks → Context → Sessions → Advanced → Configuration
+
+**Next steps:** Practice daily, create custom agents, share skills with your team
+
+> Resources: [docs.github.com/copilot](https://docs.github.com/en/copilot) · [agentskills.io](https://agentskills.io)

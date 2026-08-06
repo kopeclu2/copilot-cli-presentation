@@ -43,12 +43,12 @@ Level 3: Resources → Copilot accesses supporting files (as needed)
 
 ### Built-in Skills
 
-> Copilot CLI ships with a set of **built-in skills** that are always available without any configuration. These provide common capabilities out of the box:
-> - Code generation and transformation patterns
-> - Testing and validation workflows
-> - Documentation generation
+> Copilot CLI ships with built-in skills that are always available without any configuration:
 >
-> Built-in skills are listed alongside project and personal skills in the `/skills` command output. They cannot be disabled but can be overridden by creating a project or personal skill with the same name.
+> - `customize-cloud-agent` — configuring the Copilot cloud agent environment, including `copilot-setup-steps.yml`, preinstalled tools and dependencies, runners, and settings
+> - `github-pr-media` — uploading an image or video to GitHub's user attachments API and embedding it in a pull request description or comment
+>
+> Built-in skills are listed alongside project and personal skills in `copilot skill list` and in the `/skills` view. They cannot be deleted with `copilot skill remove`, but they can be disabled (`copilot plugins disable <name> --skill`, or `/plugins disable --skill <name>`), and a project or personal skill with the same name overrides the built-in.
 
 ### Managing Skills from the Shell
 
@@ -70,7 +70,13 @@ copilot skill add https://example.com/my-skill/SKILL.md
 # List all skills
 copilot skill list
 copilot skill list --json
+
+# Remove a personal or project skill by name, or unregister a custom directory
+copilot skill remove my-skill
+copilot skill remove ~/my-custom-skills
 ```
+
+Skills provided by a plugin or by the built-in set cannot be removed this way — disable them instead.
 
 Skills are discovered from project directories (`.github/skills/`, `.agents/skills/`, `.claude/skills/`), personal directories (`~/.copilot/skills/`, `~/.agents/skills/`), installed plugins, and custom directories added with `copilot skill add <directory>`.
 
@@ -116,16 +122,16 @@ Skills are discovered from project directories (`.github/skills/`, `.agents/skil
  ```yaml
  openapi: <openapi-version>
  info:
- title: API Name
- version: <api-version>
+   title: API Name
+   version: <api-version>
  paths:
- /resource:
- get:
- summary: Short description
- parameters: []
- responses:
- '200':
- description: Success
+   /resource:
+     get:
+       summary: Short description
+       parameters: []
+       responses:
+         '200':
+           description: Success
  ```
 
  ### For Markdown documentation:
@@ -229,15 +235,15 @@ API documentation generated following your skill's style guide.
  import { describe, it, expect, beforeEach } from 'jest';
  import { MyService } from '../src/my-service';
 
- describe('MyService',  => {
+ describe('MyService', () => {
  let service: MyService;
 
- beforeEach( => {
- service = new MyService;
+ beforeEach(() => {
+ service = new MyService();
  });
 
- describe('methodName',  => {
- it('should return expected value for valid input',  => {
+ describe('methodName', () => {
+ it('should return expected value for valid input', () => {
  // Arrange
  const input = 'valid';
 
@@ -248,12 +254,12 @@ API documentation generated following your skill's style guide.
  expect(result).toBe('expected');
  });
 
- it('should throw error for invalid input',  => {
+ it('should throw error for invalid input', () => {
  // Arrange
  const input = null;
 
  // Act & Assert
- expect( => service.methodName(input)).toThrow('Invalid input');
+ expect(() => service.methodName(input)).toThrow('Invalid input');
  });
  });
  });
@@ -642,8 +648,14 @@ Different prompts trigger different skills, producing output that follows each s
 name: skill-name # Required: lowercase, hyphens, max 64 chars
 description: What this skill does and when to use it # Required: max 1024 chars
 license: MIT # Optional: License identifier
+user-invocable: true # Optional: expose the skill as a slash command
+aliases: [alt-name] # Optional: additional slash-command names
+allowed-tools: ["bash", "view"] # Optional: restrict the tools the skill may use
+disable-model-invocation: false # Optional: prevent the model from auto-selecting the skill
 ---
 ```
+
+Only `name` and `description` are required. The shipped built-in skills use `user-invocable: false` so they are selected by the model rather than typed as a slash command.
 
 ### Skill Locations
 
@@ -667,7 +679,8 @@ license: MIT # Optional: License identifier
 - ✅ Copilot auto-selects skills based on your request
 - ✅ `copilot skill add` installs skills from files, URLs, or directories
 - ✅ `copilot skill list --json` provides machine-readable skill inventory
-- ✅ Built-in skills ship with CLI and are available without configuration
+- ✅ Built-in skills `customize-cloud-agent` and `github-pr-media` ship with the CLI and need no configuration
+- ✅ Frontmatter supports `user-invocable`, `aliases`, `allowed-tools`, and `disable-model-invocation` beyond `name`/`description`
 
 ## Next Steps
 

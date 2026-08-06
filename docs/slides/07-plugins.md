@@ -65,7 +65,7 @@ style: |
 ┌─────────────────────┐
 │ Copilot CLI         │
 ├─────────────────────┤
-│ Built-in Tools      │ shell, read, write
+│ Built-in Tools      │ bash, view, create, edit
 ├─────────────────────┤
 │ MCP Servers         │ Module 5
 ├─────────────────────┤
@@ -83,8 +83,9 @@ Plugins = **packaged integrations** from the ecosystem
 
 | Source | What you'll find |
 |--------|-----------------|
-| **github/copilot-plugins** | Official GitHub plugins |
-| **github/awesome-copilot** | Community plugins |
+| **github/copilot-plugins** | Official GitHub plugins (default marketplace) |
+| **github/awesome-copilot** | Community-curated plugins (default marketplace) |
+| **microsoft/work-iq-mcp** | Enterprise integrations |
 | **GitHub repos** | Direct `owner/repo` installs |
 | **Repo subdirectories** | `owner/repo:path` plugin layouts |
 | **Git URLs** | Direct git install sources |
@@ -126,12 +127,36 @@ copilot plugin install https://github.com/owner/my-plugin.git
 
 ```bash
 copilot plugin list
-copilot plugin update
+copilot plugin update spark@copilot-plugins
+copilot plugin update --all
 copilot plugin uninstall workiq
 copilot plugin marketplace update
 ```
 
+> `copilot plugin update` needs a plugin name **or** `--all`
 > Use `--plugin-dir /path/to/plugin` for local plugin development
+
+---
+
+## `copilot plugins` (plural)
+
+One command for **plugins, MCP servers, skills, instructions, LSPs**
+
+```bash
+copilot plugins list
+copilot plugins list --kind mcp --kind skill
+copilot plugins list --scope user --json
+
+copilot plugins install --skill --scope project ./my-skill/SKILL.md
+copilot plugins enable github --mcp
+copilot plugins disable my-skill --skill
+copilot plugins remove spark@copilot-plugins
+```
+
+Kinds: `plugin`, `mcp`, `skill`, `instruction`, `lsp`
+Scopes: `user`, `repository`, `organization`, `plugin`, `builtin`, `unknown`
+
+> `/plugins` opens the same view as an interactive dashboard
 
 ---
 
@@ -161,9 +186,12 @@ copilot --allow-tool 'plugin-name' --deny-tool 'shell(rm)'
 - **LSP servers** — code intelligence
 - **Marketplace catalogs** — discoverable plugin listings
 
+Hook and plugin scripts receive `PLUGIN_ROOT`, `PLUGIN_DATA`, and
+`COPILOT_PROJECT_DIR` (plus `COPILOT_`/`CLAUDE_` variants)
+
 ---
 
-## Your Turn!
+## Your Turn! 🚀
 
 Open **Module 7** in `docs/workshop/07-plugins.md`
 
@@ -171,10 +199,11 @@ Open **Module 7** in `docs/workshop/07-plugins.md`
 
 - **Exercise 1** — Explore official plugins
 - **Exercise 2** — Explore work-iq-mcp
-- **Exercise 3** — Install a community plugin
+- **Exercise 3** — Install a community MCP server
 - **Exercise 4** — Database plugin integration
 - **Exercise 5** — Create a custom plugin
 - **Exercise 6** — Plugin security review
 - **Exercise 7** — Plugin discovery
+- **Exercise 8** — Inspect everything with `copilot plugins`
 
-Timebox: **~12 minutes**
+⏱️ You have **~12 minutes**

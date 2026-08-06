@@ -77,27 +77,56 @@ Use cases: **logging**, **security guardrails**, **auditing**, **alerts**
 
 | Hook | Trigger | Common use |
 |------|---------|-----------|
-| `sessionStart` | Session begins | Logging, setup |
-| `sessionEnd` | Session ends | Cleanup, metrics |
+| `sessionStart` / `sessionEnd` | Session starts/resumes, ends | Logging, cleanup |
 | `userPromptSubmitted` | User sends prompt | Audit trail |
+| `userPromptTransformed` | Prompt turned into model-facing form | Prompt rewriting |
 | `preToolUse` | Before tool runs | **Permission control** |
+| `preMcpToolCall` | Before an MCP tool request is sent | Adjust MCP metadata |
 | `postToolUse` | After successful tool run | Verification, logging |
 | `postToolUseFailure` | After tool failure | Error handling |
-| `errorOccurred` | Error happens | Alerts, monitoring |
+| `errorOccurred` | A model call fails | Alerts, monitoring |
 | `preCompact` | Before compaction | State saving |
-| `subagentStart` | Sub-agent spawned | Context injection |
+| `agentStop` | Agent stops at end of turn | Turn-level automation |
+| `subagentStart` / `subagentStop` | Sub-agent spawned / completed | Context injection, results |
 | `permissionRequest` | Permission requested | Programmatic approve/deny |
 | `notification` | Shell/agent completion, permissions | External notifications |
 
 ---
 
+## ⚠️ Trust Is Required
+
+**Repository hooks only run in trusted folders**
+
+- Answer **Yes, and remember** at the trust prompt
+- Or add the path to `trustedFolders`
+
+In an untrusted folder, `.github/hooks/*.json` is discovered but **never executed** — and **no error is shown**
+
+Personal hooks in `~/.copilot/hooks/` run regardless of trust
+
+**Do this before Exercise 1.**
+
+---
+
+## Hook Locations
+
+| Scope | Location |
+|-------|----------|
+| **Repository** | any `*.json` in `<git root>/.github/hooks/` |
+| **Personal** | any `*.json` in `~/.copilot/hooks/` |
+| **Inline** | the `hooks` key in settings |
+
+Turn hooks off with `disableAllHooks`, or suppress individual ones with `disabledHooks`
+(policy hooks ignore both)
+
+---
+
 ## Configuration
 
-Lives at `.github/hooks/hooks.json`
+Lives in any `*.json` file under `.github/hooks/` — e.g. `hooks.json`
 
 ```json
 {
-  "version": 1,
   "hooks": {
     "preToolUse": [
       {
@@ -110,6 +139,19 @@ Lives at `.github/hooks/hooks.json`
   }
 }
 ```
+
+---
+
+## Payload Shape Follows the Key
+
+The event key's casing decides the payload — the two shapes never mix
+
+| Event key | Payload fields |
+|-----------|----------------|
+| camelCase `preToolUse` | `sessionId`, `timestamp` (ms), `cwd`, `toolName`, `toolArgs` (JSON **string**) |
+| PascalCase `PreToolUse` | `hook_event_name`, `session_id`, `timestamp` (ISO 8601), `cwd`, `tool_name`, `tool_input` (JSON **object**) |
+
+Use **camelCase** for Copilot CLI; use **PascalCase** to reuse a VS Code or Claude Code hooks file
 
 ---
 
@@ -140,7 +182,26 @@ Track session start/end with `sessionStart` and `sessionEnd`
 
 ## Pre-Tool Permission Control
 
-Block dangerous operations with `preToolUse`
+`preToolUse` supports **three** permission decisions
+
+| Decision | Behavior |
+|----------|----------|
+| `allow` | Allow the tool to execute |
+| `deny` | Block the tool with a reason |
+| `ask` | Prompt the user for confirmation before executing |
+
+```json
+{
+  "permissionDecision": "allow|deny|ask",
+  "permissionDecisionReason": "Explanation shown to user"
+}
+```
+
+> `ask` lets hooks request confirmation instead of silently allowing or denying
+
+---
+
+## Blocking a Dangerous Command
 
 ```bash
 INPUT=$(cat)
@@ -155,6 +216,29 @@ echo '{}'
 ```
 
 > **Note:** Copilot has built-in safety that blocks some commands (like `rm -rf /`) before hooks run. Use hooks for organization-specific policies.
+
+---
+
+## Reshaping the Tool Call
+
+`preToolUse` hooks can also return these fields — the CLI respects them
+
+| Field | Effect |
+|-------|--------|
+| `modifiedArgs` | Replace the tool arguments (JSON string) |
+| `updatedInput` | Replace the prompt text |
+| `additionalContext` | Inject extra context for the turn |
+
+```json
+{
+  "modifiedArgs": "{\"command\": \"ls -la --color=never\"}",
+  "updatedInput": "Modified prompt text",
+  "additionalContext": "Extra context injected by hook"
+}
+```
+
+> Return only `permissionDecision`/`permissionDecisionReason` or the fields
+> above — other keys are ignored
 
 ---
 
@@ -178,8 +262,10 @@ echo "[$(date -Iseconds)] $TOOL_NAME: $RESULT" >> logs/audit.log
 
 Open **Module 9** in `docs/workshop/09-hooks.md`
 
+> **First:** make sure your folder is trusted, or none of the repository hooks will run.
+
 **Exercises 1-7:**
-1. **Exercise 1** — Create hooks skeleton
+1. **Exercise 1** — Trust the folder + create hooks skeleton
 2. **Exercise 2** — Session logging hooks
 3. **Exercise 3** — Prompt auditing hook
 4. **Exercise 4** — Pre-tool permission control

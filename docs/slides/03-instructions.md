@@ -71,11 +71,12 @@ With instructions, Copilot **knows**:
 
 ---
 
-## Three Files That Shape Behavior
+## Files That Shape Behavior
 
 | File | Scope | Think of it as... |
 |------|-------|-------------------|
 | `AGENTS.md` | Directory tree | **"Who you are"** |
+| `CLAUDE.md` / `GEMINI.md` | Git root + cwd | **"Who you are"** (cross-tool) |
 | `.github/copilot-instructions.md` | Whole repo | **"How we code here"** |
 | `.github/instructions/*.instructions.md` | File patterns | **"Special rules for these files"** |
 
@@ -88,10 +89,13 @@ Highest wins ↓
 ```
 1. Your prompt                              ← always wins
 2. AGENTS.md (nearest in directory tree)
+   + CLAUDE.md / GEMINI.md (git root & cwd)
 3. .github/copilot-instructions.md
-4. .github/instructions/*.instructions.md
-5. ~/.copilot/instructions.md (personal)
-6. Default behavior                         ← fallback
+4. .github/instructions/**/*.instructions.md
+5. ~/.copilot/copilot-instructions.md (personal)
+6. ~/.copilot/instructions/**/*.instructions.md
+7. COPILOT_CUSTOM_INSTRUCTIONS_DIRS
+8. Default behavior                         ← fallback
 ```
 
 > They **stack** — all active instructions are combined
@@ -153,6 +157,48 @@ applyTo: "**/*.test.ts,**/*.spec.ts"
 ```
 
 Saved as `.github/instructions/tests.instructions.md`
+
+---
+
+## `applyTo` Accepts Two Forms
+
+```yaml
+# Comma-separated string
+applyTo: "**/*.ts,**/*.tsx"
+```
+
+```yaml
+# YAML array
+applyTo:
+  - "**/*.ts"
+  - "**/*.tsx"
+```
+
+- Files with `applyTo` are **consolidated into a single table** in `/instructions`
+  output — grouping them reduces context usage
+- Instruction files discovered from **multiple paths are deduplicated** — each
+  unique file is loaded only once
+
+---
+
+## Controlling What Gets Loaded
+
+Start without any custom instructions at all:
+
+```bash
+copilot --no-custom-instructions
+```
+
+Add extra directories for instruction discovery, beyond the git root and cwd:
+
+```bash
+export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="/path/to/shared-instructions,/path/to/team-standards"
+copilot
+```
+
+Comma-separated list of directories — useful for shared team standards kept
+outside the repository. Files found there sit at the bottom of the priority
+stack, and overlap with the project directory is deduplicated.
 
 ---
 

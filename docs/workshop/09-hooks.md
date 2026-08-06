@@ -5,6 +5,10 @@
 - Completed Modules 1-9
 - Understanding of shell scripting (bash/PowerShell)
 - JSON basics
+- A **trusted** working folder — repository hooks only run in trusted folders
+
+> [!IMPORTANT]
+> Answer **Yes, and remember** at the trust prompt the first time you launch Copilot in the folder you use for this module. Without folder trust, `.github/hooks/*.json` is discovered but never executed and no error is shown, so every exercise below would silently produce nothing.
 
 ## Learning Objectives
 
@@ -30,26 +34,36 @@ User Prompt → Session Start → Pre-Tool → Tool Execution → Post-Tool → 
 
 | Hook | Trigger | Use Cases |
 |------|---------|-----------|
-| `sessionStart` | Session begins | Logging, environment setup |
+| `sessionStart` | Session starts or resumes | Logging, environment setup |
 | `sessionEnd` | Session ends | Cleanup, metrics |
 | `userPromptSubmitted` | User sends prompt | Audit, filtering |
+| `userPromptTransformed` | After a prompt is transformed into its model-facing form, before it enters history | Prompt rewriting, auditing |
 | `preToolUse` | Before tool execution | Permission control, validation |
+| `preMcpToolCall` | Before an MCP tool request is sent | Adjust MCP request metadata |
 | `postToolUse` | After successful tool execution | Logging, verification |
 | `postToolUseFailure` | After tool execution fails | Error handling, retry logic |
-| `errorOccurred` | Error happens | Error handling, alerts |
+| `errorOccurred` | A model call fails | Error handling, alerts |
 | `preCompact` | Before context compaction | Pre-compaction tasks, state saving |
+| `agentStop` | The agent stops at the end of a turn | Turn-level automation, notifications |
 | `subagentStart` | Sub-agent is spawned | Context injection, logging |
+| `subagentStop` | Sub-agent completes | Collect sub-agent results |
 | `permissionRequest` | Tool permission requested | Programmatic approve/deny of tool permissions |
 | `notification` | Shell completion, permission prompts, elicitation, agent completion | External notification integration |
 
 ### Hook Locations
 
-- **Copilot Coding Agent**: `.github/hooks/hooks.json` (on default branch)
-- **Copilot CLI**: Hooks loaded from current working directory
+- **Repository hooks**: any `*.json` file in `<git root>/.github/hooks/` (for example `hooks.json`)
+- **Personal hooks**: any `*.json` file in `~/.copilot/hooks/`
+- **Inline hooks**: the `hooks` key in settings, keyed by event name, using the same schema
+
+> [!IMPORTANT]
+> Repository hooks run only in **trusted folders**. The first time you launch Copilot in a directory, answer **Yes, and remember** at the trust prompt (or add the path to `trustedFolders`). In an untrusted folder, `.github/hooks/*.json` is discovered but never executed, and no error is shown. Personal hooks in `~/.copilot/hooks/` run regardless of folder trust.
+>
+> Complete this before Exercise 1, or every repository hook in this module will silently do nothing.
 
 ### Disabling All Hooks
 
-> Use the `disableAllHooks` flag in configuration to disable all hooks:
+> Use the `disableAllHooks` setting to disable all hooks, both user-level and repo-level:
 
 ```json
 {
@@ -58,6 +72,8 @@ User Prompt → Session Start → Pre-Tool → Tool Execution → Post-Tool → 
 ```
 
 This is useful for debugging or CI environments where hooks may interfere with automation.
+
+To suppress specific hooks rather than all of them, list their content-hash keys under `disabledHooks`. Policy-delivered hooks cannot be suppressed and ignore both settings.
 
 ### Hook Permission Decisions
 
@@ -99,18 +115,25 @@ Hooks support three permission decisions in `preToolUse`:
 
 > **Note:** `sessionStart` and `sessionEnd` hooks fire **once per session**, not once per prompt. They fire exactly once at session start and session end. For per-prompt logic, use the `userPromptSubmitted` hook.
 
-### Hook Payload Fields
+### Hook Payload Shapes
 
-> Hook payloads use **PascalCase** field names alongside camelCase names for cross-platform compatibility. Fields include:
-> - `hook_event_name` — the event type (e.g., `"PreToolUse"`, `"SessionStart"`)
-> - `session_id` — the session identifier
-> - ISO 8601 timestamps — timestamps are formatted as ISO 8601 strings in addition to Unix milliseconds
+> The payload a hook receives is determined by how you write the event key in the hooks file. The two shapes are mutually exclusive:
 >
-> Both camelCase and PascalCase field names work; the PascalCase additions improve compatibility with VS Code and Claude Code hook configurations.
+> | Event key casing | Payload fields |
+> | --- | --- |
+> | camelCase (`sessionStart`, `preToolUse`) | `sessionId`, `timestamp` (Unix milliseconds), `cwd`, `toolName`, `toolArgs` (JSON **string**), `initialPrompt` |
+> | PascalCase (`SessionStart`, `PreToolUse`) | `hook_event_name`, `session_id`, `timestamp` (ISO 8601 string), `cwd`, `tool_name` (capitalised, e.g. `Bash`), `tool_input` (JSON **object**), `initial_prompt` |
+>
+> Use camelCase keys for hooks written for Copilot CLI; use PascalCase keys when reusing a hooks file authored for VS Code or Claude Code.
 
-### Plugin Hook Environment
+### Hook Script Environment
 
-> Plugin hooks receive `PLUGIN_ROOT` environment variables pointing to the plugin's installation directory. This allows hook scripts packaged with plugins to reference sibling files reliably.
+> Hook and plugin scripts receive:
+> - `PLUGIN_ROOT`, `COPILOT_PLUGIN_ROOT`, `CLAUDE_PLUGIN_ROOT` — the plugin's installation directory
+> - `COPILOT_PLUGIN_DATA`, `CLAUDE_PLUGIN_DATA` — the plugin's writable data directory
+> - `COPILOT_PROJECT_DIR`, `CLAUDE_PROJECT_DIR` — the project root
+>
+> This lets hook scripts packaged with plugins reference sibling files reliably. Individual discovered hooks can be suppressed with the `disabledHooks` setting; `disableAllHooks` turns off both repository and personal hooks.
 
 ### Notification Hook Event
 
@@ -145,12 +168,23 @@ Hooks support three permission decisions in `preToolUse`:
 
 **Steps:**
 
-1. Create the hooks directory:
+1. Trust the folder you are working in. Start the CLI from the repository root and answer **Yes, and remember** at the trust prompt:
+   ```bash
+   copilot
+   ```
+   ```
+   /exit
+   ```
+
+   > [!IMPORTANT]
+   > Repository hooks in `.github/hooks/` are skipped in untrusted folders, with no error message. Do this first so the rest of the module works.
+
+2. Create the hooks directory:
    ```bash
    mkdir -p .github/hooks
    ```
 
-2. Create the hooks configuration file:
+3. Create the hooks configuration file:
    ```bash
    cat > .github/hooks/hooks.json << 'EOF'
    {
@@ -166,10 +200,12 @@ Hooks support three permission decisions in `preToolUse`:
    EOF
    ```
 
-3. This is the skeleton - we'll add hooks in subsequent exercises.
+   > **Note:** The file name is up to you — every `*.json` file in `.github/hooks/` is loaded. `hooks.json` is just a convention.
+
+4. This is the skeleton - we'll add hooks in subsequent exercises.
 
 **Expected Outcome:**
-Hooks configuration file ready for customization.
+Hooks configuration file ready for customization, in a trusted folder so hooks will actually run.
 
 ### Exercise 2: Session Logging Hooks
 
@@ -765,6 +801,29 @@ All tool executions are logged with results:
 
 > **Note:** `resultType` is `"success"` or `"error"`. `toolArgs` is a JSON string.
 
+#### userPromptTransformed
+```json
+{
+  "sessionId": "uuid-string",
+  "timestamp": 1771976925250,
+  "cwd": "/path/to/workspace",
+  "prompt": "User's prompt text",
+  "transformedPrompt": "The model-facing form of the prompt"
+}
+```
+
+#### agentStop
+```json
+{
+  "sessionId": "uuid-string",
+  "timestamp": 1771976928900,
+  "cwd": "/path/to/workspace",
+  "transcriptPath": "/home/you/.copilot/session-state/uuid-string/events.jsonl",
+  "stopReason": "end_turn",
+  "stop_hook_active": false
+}
+```
+
 ### Permission Decision Response
 
 ```json
@@ -789,23 +848,28 @@ All tool executions are logged with results:
 ## Summary
 
 - ✅ Hooks execute at key points in agent lifecycle
+- ✅ Repository hooks only run in **trusted folders** — untrusted folders skip them silently
+- ✅ Repository hooks live in any `*.json` file under `<git root>/.github/hooks/`; personal hooks under `~/.copilot/hooks/`
 - ✅ `preToolUse` enables security guardrails
 - ✅ `postToolUse` allows verification and logging (fires only on successful tool calls)
 - ✅ `postToolUseFailure` handles tool errors separately
 - ✅ `permissionRequest` hook enables programmatic approve/deny of tool permissions
 - ✅ Session hooks enable auditing
-- ✅ Error hooks support monitoring integration
+- ✅ `errorOccurred` fires when a model call fails
 - ✅ Hooks must return JSON for permission decisions
 - ✅ `preCompact` hook fires before context compaction
-- ✅ `subagentStart` hook fires when a sub-agent is spawned
-- ✅ `disableAllHooks` flag disables all hooks
+- ✅ `userPromptTransformed` fires after a prompt is turned into its model-facing form
+- ✅ `preMcpToolCall` fires before an MCP tool request is sent
+- ✅ `agentStop` fires when the agent stops at the end of a turn
+- ✅ `subagentStart` and `subagentStop` fire when a sub-agent is spawned and when it completes
+- ✅ `disableAllHooks` disables every hook; `disabledHooks` suppresses individual ones (policy hooks ignore both)
 - ✅ Hook `ask` permission decision prompts user for confirmation
 - ✅ Cross-platform hook configs work across VS Code, Claude Code, and CLI
-- ✅ Hooks can also be defined in `settings.json`, `settings.local.json`, and `config.json`
+- ✅ Hooks can also be declared inline under the `hooks` key in settings
 - ✅ `preToolUse` hooks respect `modifiedArgs`/`updatedInput`/`additionalContext`
 - ✅ `sessionStart`/`sessionEnd` hooks fire once per session, not per prompt
-- ✅ Hook payloads include PascalCase fields, `hook_event_name`, `session_id`, ISO 8601 timestamps
-- ✅ Plugin hooks receive `PLUGIN_ROOT` env vars
+- ✅ camelCase event keys yield camelCase payloads; PascalCase event keys yield `hook_event_name`/`session_id`/ISO 8601 payloads
+- ✅ Hook and plugin scripts receive `PLUGIN_ROOT`, `COPILOT_PLUGIN_DATA`, and `COPILOT_PROJECT_DIR` env vars
 - ✅ `notification` hook event fires on shell completion, permission prompts, elicitation, agent completion
 
 ## Next Steps
@@ -815,4 +879,6 @@ All tool executions are logged with results:
 ## References
 
 - [Hooks Configuration - GitHub Docs](https://docs.github.com/en/copilot/reference/hooks-configuration)
+- [About Hooks - GitHub Docs](https://docs.github.com/en/copilot/concepts/agents/hooks)
+- [Using Hooks with Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/use-hooks)
 - [Use Hooks - GitHub Docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/use-hooks)

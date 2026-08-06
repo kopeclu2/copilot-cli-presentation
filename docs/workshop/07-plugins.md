@@ -12,6 +12,7 @@
 - Explore the GitHub copilot-plugins repository
 - Learn about work-iq-mcp and enterprise integrations
 - Install and configure plugins
+- Inspect plugins, MCP servers, and skills with `copilot plugins`
 - Understand plugin security considerations
 
 ## Concepts
@@ -77,9 +78,45 @@ copilot plugin install https://github.com/owner/my-plugin.git
 
 # Inspect and maintain installed plugins
 copilot plugin list
-copilot plugin update
+copilot plugin update spark@copilot-plugins
+copilot plugin update --all
 copilot plugin uninstall workiq
 ```
+
+`copilot plugin update` requires either a plugin name or `--all`; running it with no argument reports a missing plugin name.
+
+### Inspecting Resources Across Kinds
+
+`copilot plugins` (plural) is a separate command that inspects and manages plugins, MCP servers, skills, instruction sources, and language servers together, grouped by kind and configuration scope:
+
+```bash
+# Everything configured for this workspace
+copilot plugins list
+
+# Filter by kind or scope; --json for machine-readable output
+copilot plugins list --kind mcp --kind skill
+copilot plugins list --scope user --json
+
+# Install a plugin, or a skill for your user account / this project
+copilot plugins install spark@copilot-plugins
+copilot plugins install --skill ./my-skill/SKILL.md
+copilot plugins install --skill --scope project ./my-skill/SKILL.md
+
+# Enable, disable, or remove by kind
+copilot plugins enable github --mcp
+copilot plugins disable my-skill --skill
+copilot plugins remove spark@copilot-plugins
+
+# Browse and manage marketplaces
+copilot plugins marketplace browse copilot-plugins
+```
+
+Supported `--kind` values are `plugin`, `mcp`, `skill`, `instruction`, and `lsp`. Supported `--scope` values are `user`, `repository`, `organization`, `plugin`, `builtin`, and `unknown`. Use `--plugin` (the default), `--mcp`, or `--skill` on `enable`, `disable`, `remove`, and `install` to disambiguate names that collide across kinds.
+
+> [!NOTE]
+> MCP servers are installed from a policy-configured registry, which requires authentication and interactive secret entry, so `copilot plugins install --mcp` is not supported. Add them from the `/plugin` dashboard or `/mcp` instead.
+
+The `/plugin` slash command opens the same view as an interactive dashboard; `/plugin --plugin`, `/plugin --mcp`, and `/plugin --skill` open it on that tab, and `/plugin mcp <subcommand>` delegates to `/mcp`.
 
 ### Plugin Sources
 
@@ -96,7 +133,15 @@ copilot plugin uninstall workiq
 
 ### Plugin Hooks and Environment
 
-Plugin hooks receive `PLUGIN_ROOT` environment variables pointing to the plugin installation directory. This allows hook scripts to reference files within the plugin package without hardcoding paths.
+Hook and plugin scripts receive:
+
+| Variable | Points to |
+|---|---|
+| `PLUGIN_ROOT`, `COPILOT_PLUGIN_ROOT`, `CLAUDE_PLUGIN_ROOT` | The plugin's installation directory |
+| `PLUGIN_DATA`, `COPILOT_PLUGIN_DATA`, `CLAUDE_PLUGIN_DATA` | The plugin's writable data directory |
+| `COPILOT_PROJECT_DIR`, `CLAUDE_PROJECT_DIR` | The project root |
+
+This lets hook scripts reference files inside the plugin package, and write state, without hardcoding paths. See [Module 9: Hooks](09-hooks.md) for hook lifecycle details.
 
 ### Post-Install Messages
 
@@ -340,23 +385,23 @@ Database query capabilities via Copilot.
  'Get the current timestamp in various formats',
  { format: z.enum(['iso', 'unix', 'human']).default('iso') },
  async ({ format }) => {
- const now = new Date;
+ const now = new Date();
  let timestamp;
  switch (format) {
- case 'unix': timestamp = String(Math.floor(now.getTime / 1000)); break;
- case 'human': timestamp = now.toLocaleString; break;
- default: timestamp = now.toISOString; break;
+ case 'unix': timestamp = String(Math.floor(now.getTime() / 1000)); break;
+ case 'human': timestamp = now.toLocaleString(); break;
+ default: timestamp = now.toISOString(); break;
  }
  return { content: [{ type: 'text', text: timestamp }] };
  }
  );
 
  // Start the server over stdio
- async function main {
- const transport = new StdioServerTransport;
+ async function main() {
+ const transport = new StdioServerTransport();
  await server.connect(transport);
  }
- main.catch(console.error);
+ main().catch(console.error);
  EOF
  ```
 
@@ -485,16 +530,69 @@ You can evaluate and securely configure plugins.
 **Expected Outcome:**
 You can find, evaluate, and contribute to the plugin ecosystem.
 
+### Exercise 8: Inspect Everything with `copilot plugins`
+
+**Goal:** Use the plural `copilot plugins` command to audit plugins, MCP servers, skills, instructions, and language servers in one place.
+
+**Steps:**
+
+1. List everything configured for the current workspace:
+ ```bash
+ copilot plugins list
+ ```
+ Note how the output groups results by kind, then by configuration scope (user, repository, organization, plugin, built-in).
+
+2. Narrow the output to a single kind:
+ ```bash
+ copilot plugins list --kind mcp
+ copilot plugins list --kind skill
+ ```
+
+3. Combine kind and scope filters, and take machine-readable output:
+ ```bash
+ copilot plugins list --kind mcp --kind skill --scope user --json
+ ```
+
+4. Toggle a resource by kind. Disable the built-in GitHub MCP server, confirm it, then re-enable it:
+ ```bash
+ copilot plugins disable github --mcp
+ copilot plugins list --kind mcp
+ copilot plugins enable github --mcp
+ ```
+
+5. Install a skill into the current project rather than your user account:
+ ```bash
+ copilot plugins install --skill --scope project ~/.copilot/skills/git-workflow/SKILL.md
+ ```
+ > Reuse the personal `git-workflow` skill you created in Module 6. Project-scoped skills land in `.github/skills/`.
+
+6. Open the same view interactively:
+ ```bash
+ copilot
+ ```
+ ```
+ /plugin
+ /plugin --mcp
+ /plugin --skill
+ ```
+
+**Expected Outcome:**
+You can audit and toggle plugins, MCP servers, and skills from a single command, filter by kind and scope, and open the equivalent interactive dashboard with `/plugin`.
+
 ## Plugin Installation Methods
 
 ### From a Marketplace
 
-```bash
-# Install from a registered marketplace in an interactive session
+Install from a registered marketplace in an interactive session:
+
+```
 /plugin install spark@copilot-plugins
 /plugin install some-plugin@awesome-copilot
+```
 
-# Or install from the shell
+Or install from the shell:
+
+```bash
 copilot plugin install spark@copilot-plugins
 copilot plugin install some-plugin@awesome-copilot
 ```
@@ -593,6 +691,10 @@ copilot --plugin-dir ./plugin-a --plugin-dir ./plugin-b
 - ✅ `copilot plugin install` installs from marketplaces, GitHub repos, repo subdirectories, or git URLs
 - ✅ `copilot plugin marketplace browse` discovers marketplace plugins
 - ✅ `copilot plugin marketplace update` refreshes plugin catalogs
+- ✅ `copilot plugin update` needs a plugin name or `--all`
+- ✅ `copilot plugins` (plural) inspects plugins, MCP servers, skills, instructions, and language servers by kind and scope
+- ✅ `/plugin` opens the same view as an interactive dashboard
+- ✅ Plugin and hook scripts get `PLUGIN_ROOT`, `PLUGIN_DATA`, and `COPILOT_PROJECT_DIR` (plus their `COPILOT_`/`CLAUDE_` variants)
 - ✅ Plugins can bundle skills, agents, hooks, MCP servers, and LSP servers
 
 ## Next Steps

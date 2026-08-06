@@ -88,6 +88,10 @@ copilot --context long_context
 copilot help config
 ```
 
+Persist it with `"contextTier": "long_context"` in `~/.copilot/settings.json`
+
+> `~/.copilot/config.json` is managed automatically and holds credentials — never print it.
+
 Available models and context windows depend on your subscription and selected model.
 
 ---
@@ -99,7 +103,8 @@ Available models and context windows depend on your subscription and selected mo
 | `/context` | Show token usage | Check regularly |
 | `/usage` | Session stats (requests, duration, lines edited) | Track consumption |
 | `/compact` | Compress history | Long sessions |
-| `/clear` | Reset everything | Switching topics |
+| `/clear` | Abandon session and start fresh (session is discarded) | Abandoning session entirely |
+| `/new` | Start new conversation (old session stays backgrounded) | New topic, keep old session |
 | `/cwd` | Change working directory | Switch project scope |
 | `@path/to/file` | Include file in prompt | Targeted context |
 | `#<number>` | Include issue/PR/discussion | GitHub context |
@@ -130,7 +135,8 @@ Show me just @src/auth/middleware.ts
 
 | Strategy | When |
 |----------|------|
-| `/clear` | Switching to unrelated topic |
+| `/clear` | Abandoning session entirely |
+| `/new` | Starting new topic but keeping old session accessible |
 | `/compact` | Long session, need to continue |
 | Explore agent | Codebase overview without cost |
 | `@path/to/file` | Include specific files |

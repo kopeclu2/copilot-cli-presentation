@@ -116,6 +116,23 @@ Perfect for: automation, CI/CD, scripting
 
 ---
 
+## Programmatic Mode: Machine-Readable Output
+
+```bash
+# JSON output for scripting
+copilot -p "list all TODO comments" --output-format json
+```
+
+```bash
+# Silent mode — agent response only, no stats
+copilot -p "What is 2+2?" -s
+```
+
+Pair `--output-format json` with a parser like `jq`; use `-s` when you want
+the response text alone, with no session statistics around it.
+
+---
+
 ## Delegate Mode
 
 **Hand off to a cloud agent** — it creates a branch and PR
@@ -138,18 +155,22 @@ Type **`/help`** to see them all
 
 | Category | Key commands |
 |----------|-------------|
-| **Review** | `/plan`, `/review`, `/rubber-duck`, `/security-review`, `/diff`, `/research`, `/undo` |
-| **Session** | `/clear`, `/resume`, `/rename`, `/session`, `/usage` |
+| **Review** | `/plan`, `/review`, `/rubber-duck`, `/security-review`, `/diff`, `/research`, `/rewind` |
+| **Session** | `/clear`, `/resume`, `/rename`, `/fork`, `/session`, `/usage` |
 | **Navigation** | `/cwd`, `/add-dir`, `/list-dirs` |
 | **Context** | `/context`, `/compact` |
-| **Config** | `/model`, `/mcp`, `/plugin`, `/settings`, `/subagents`, `/instructions` |
-| **Tools** | `/allow-all`, `/reset-allowed-tools` |
+| **Config** | `/model`, `/mcp`, `/plugin`, `/theme`, `/settings`, `/statusline`, `/subagents`, `/instructions` |
+| **Tools** | `/permissions`, `/allow-all`, `/reset-allowed-tools` |
 | **Extensibility** | `/skills`, `/plugin`, `/agent`, `/fleet` |
 | **Scheduling** | `/after`, `/every` |
 | **Sharing** | `/share`, `/feedback`, `/copy` |
 | **Account** | `/login`, `/logout`, `/user` |
 | **IDE** | `/ide` |
-| **System** | `/help`, `/exit`, `/init`, `/tasks`, `/lsp`, `/update`, `/restart`, `/version`, `/chronicle`, `/limits` |
+| **System** | `/help`, `/changelog`, `/exit`, `/init`, `/tasks`, `/lsp`, `/update`, `/restart`, `/version`, `/chronicle`, `/limits` |
+
+> Most commands have aliases — `/yolo` → `/allow-all`, `/cd` → `/cwd`, `/undo` → `/rewind`
+> `/theme` with no argument opens the theme picker; `/settings theme dim` sets it directly
+> (themes: `default`, `github`, `dim`, `high-contrast`, `colorblind`)
 
 ---
 
@@ -162,7 +183,7 @@ Type **`/help`** to see them all
 | `!` | Run shell commands directly (only way to access shell) |
 | `Shift+Tab` | Cycle between chat → plan → autopilot mode |
 | `Esc` | Cancel current operation |
-| `Double-Esc` | Clear input or trigger undo |
+| `Double-Esc` | Clear input, or rewind the last turn |
 | `ctrl+t` | Toggle reasoning display |
 | `ctrl+x → /` | Quick slash command |
 | `ctrl+c` | Cancel / clear input / exit |
@@ -240,6 +261,33 @@ When Copilot wants to run a command, you choose:
 
 > ⚠️ Be careful with session-wide approval for `rm`, `git push`, `sudo`
 > ✅ Safe for `ls`, `cat`, `git status`, `git diff`
+
+---
+
+## Permission Modes & Session Limits
+
+Switch how much the agent may do on its own:
+
+```
+/permissions manual      # approve every request
+/permissions assisted    # auto-approve what a safety check deems safe
+/permissions allow-all   # auto-approve tools, paths, and URLs
+/permissions show        # show current status
+```
+
+Cap what a session may spend (opt-in, minimum **30** AI credits):
+
+```bash
+copilot --max-ai-credits 30
+```
+
+```
+/limits                            # interactive limits dialog
+/limits set max-ai-credits 50
+/limits unset all
+```
+
+> The AI credit limit is a **soft cap** — usage is known only after a response returns
 
 ---
 

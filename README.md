@@ -1,9 +1,9 @@
 # GitHub Copilot CLI — Deep-Dive Workshop
 
-[![Copilot CLI version](https://img.shields.io/badge/Copilot%20CLI-v1.0.69--1-blue?logo=github)](https://github.com/github/copilot-cli/releases/tag/v1.0.69-1)
+[![Copilot CLI version](https://img.shields.io/badge/Copilot%20CLI-v1.0.79--5-blue?logo=github)](https://github.com/github/copilot-cli/releases/tag/v1.0.79-5)
 [![APS version](https://img.shields.io/badge/APS-v1.2.1-blue?logo=github)](https://github.com/chris-buckley/agnostic-prompt-standard/releases/tag/v1.2.1)
 
-A **half-day, instructor-led** workshop that takes teams from first install to advanced automation with GitHub Copilot CLI. Covers operating modes, custom instructions, MCP servers, agent skills, plugins, custom agents, hooks, context management, and more — all through hands-on exercises validated against **Copilot CLI v1.0.69-1**.
+A **half-day, instructor-led** workshop that takes teams from first install to advanced automation with GitHub Copilot CLI. Covers operating modes, custom instructions, MCP servers, agent skills, plugins, custom agents, hooks, context management, and more — all through hands-on exercises validated against **Copilot CLI v1.0.79-5**.
 
 ## What's Inside
 
@@ -45,6 +45,12 @@ This repo includes a `.devcontainer` configuration for a fully isolated workshop
 1. Open this repo in VS Code
 2. Click **"Reopen in Container"** when prompted (or run `Dev Containers: Reopen in Container` from the command palette)
 3. All prerequisites (Node.js, npm, git, gh) are pre-installed
+
+The Dev Container passes `NPM_CONFIG_REGISTRY`, `PIP_INDEX_URL`, and `RestoreSources`
+from the environment that launches VS Code into the image build and the resulting
+container. Export these variables before starting VS Code, then rebuild the container
+after changing them. If a variable is not set, the Dev Container uses the corresponding
+public npm, PyPI, or NuGet registry.
 
 > This is the recommended approach — it avoids polluting your host machine and ensures a consistent environment for all participants.
 

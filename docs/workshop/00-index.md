@@ -94,9 +94,11 @@ copilot --continue
 | --- | --- |
 | `/help` | Show all available commands |
 | `/ask` | Ask a quick question without affecting conversation history |
+| `/refine` | Rewrite a rough prompt into a clear one for review |
 | `/clear` | Abandon session and start fresh |
 | `/new` | Start new conversation (old session stays backgrounded) |
 | `/session` | View and manage sessions |
+| `/fork` | Fork the current session into a new session |
 | `/usage` | Display session usage metrics |
 | `/context` | View token usage |
 | `/compact` | Compress session history |
@@ -113,12 +115,12 @@ copilot --continue
 | `/init` | Initialize Copilot config for repo |
 | `/instructions` | View and toggle custom instruction files |
 | `/allow-all` | Enable all permissions during the session |
+| `/permissions` | Switch between permission modes (`manual`, `assisted`, `allow-all`, `show`) |
 | `/add-dir` | Add a directory to the session access scope |
 | `/list-dirs` | Display all accessible directories |
 | `/cwd` | Change working directory |
 | `/research` | Deep research with exportable reports |
-| `/undo` | Undo the last turn when possible |
-| `/rewind` | Roll back to any point in conversation history |
+| `/rewind` (alias `/undo`) | Rewind the last turn and revert file changes (also via double-Esc) |
 | `/copy` | Copy last response to clipboard |
 | `/ide` | Connect to IDE workspace |
 | `/lsp` | Manage language server configuration |
@@ -130,6 +132,8 @@ copilot --continue
 | `/tasks` | View and manage tasks (subagents and shell commands) |
 | `/env` | Show loaded instructions, MCP servers, skills, agents, hooks, plugins, LSPs, and extensions |
 | `/settings` | Open or edit CLI settings |
+| `/statusline` | Configure status line items |
+| `/changelog` | Display the changelog for CLI releases |
 | `/subagents` | Configure default and per-agent subagent models |
 
 ## Environment Setup Check

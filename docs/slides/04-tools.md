@@ -63,14 +63,34 @@ style: |
 
 | Tool | Purpose | Risk |
 |------|---------|------|
-| `shell` | Execute shell commands | ⚠️ High |
-| `write` | Create/modify files | ⚠️ High |
-| `read` | Read file contents | Low |
-| `show_file` | Present code/diffs to user | Low |
-| `web_fetch` | Fetch web content | Medium |
-| `mcp` | Use MCP server tools | Varies |
+| `bash` | Execute shell commands | ⚠️ High |
+| `create` / `edit` | Create and modify files | ⚠️ High |
+| `view` | Read files, list directories | Low |
+| `glob` / `grep` | Find files, search contents | Low |
+| `web_fetch` / `web_search` | Fetch and search the web | Medium |
+| `task` / `skill` | Delegate to subagents, load skills | Varies |
+| MCP server tools | Contributed by configured servers | Varies |
 
 Every destructive action **requires your approval**
+
+---
+
+## Tools ≠ Permission Kinds
+
+Permission rules match **kinds**, not tool names:
+
+| Kind | Matches |
+|------|---------|
+| `shell(command)` | Shell commands run by the `bash` tool |
+| `write(path)` | File creation and modification |
+| `<mcp-server-name>(tool-name)` | Tools from an MCP server |
+| `url(domain-or-url)` | URL access |
+
+```bash
+copilot --allow-tool 'shell(git:*)' --deny-tool 'shell(git push)'
+```
+
+> Filter by *tool name* with `--available-tools` / `--excluded-tools`
 
 ---
 
@@ -87,6 +107,25 @@ Three choices when Copilot wants to use a tool:
 > Use `/reset-allowed-tools` to clear session approvals
 
 > ⚠️ Undo operations always require confirmation before applying
+
+---
+
+## Permission Modes
+
+`/permissions` switches the whole session at once:
+
+| Mode | Behavior |
+|------|----------|
+| `manual` | Approve every request |
+| `assisted` | Auto-approve what a safety check deems safe |
+| `allow-all` | Auto-approve tools, paths, and URLs |
+| `show` | Report the current mode |
+
+```
+/permissions
+/permissions allow-all
+/permissions show
+```
 
 ---
 
@@ -149,6 +188,44 @@ copilot --no-ask-user --allow-all
 
 ---
 
+## Command Sandboxing 🧪
+
+A **third layer** on top of tool and path permissions
+
+```
+/sandbox            # status / policy dialog
+/sandbox enable
+/sandbox disable
+```
+
+Shell commands run inside an OS-level sandbox — restricted **filesystem**, **network**, and **credentials**
+
+- Experimental: needs `--experimental` or `/settings experimental on`
+- Backends: Seatbelt (macOS), bubblewrap (Linux), ProcessContainer (Windows)
+- Configured under `sandbox.*` in `~/.copilot/settings.json`
+
+> `copilot help sandbox` has the full reference
+
+---
+
+## ⚠️ Never Print `config.json`
+
+```bash
+# DON'T: this prints your live auth token
+cat ~/.copilot/config.json
+
+# DO: read only the key you need
+grep -v '^[[:space:]]*//' ~/.copilot/config.json \
+  | jq -r '.trustedFolders[]?'
+```
+
+- `~/.copilot/config.json` — **managed automatically**, holds credentials and `trustedFolders`
+- `~/.copilot/settings.json` — **your settings**; edit with `/settings`
+
+Especially important while screen-sharing
+
+---
+
 ## Your Turn! 🚀
 
 Open **Module 4** in `docs/workshop/04-tools.md`
@@ -160,7 +237,7 @@ Open **Module 4** in `docs/workshop/04-tools.md`
 - **Exercise 3** — `--allow-tool` flag
 - **Exercise 4** — `--deny-tool` flag
 - **Exercise 5** — YOLO mode
-- **Exercise 6** — Trusted directories
+- **Exercise 6** — Trusted directories (+ safe config inspection)
 - **Exercise 7** — Safe automation script
 
 ⏱️ You have **~16 minutes**

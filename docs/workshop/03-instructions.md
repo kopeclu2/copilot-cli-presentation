@@ -22,11 +22,13 @@ Copilot CLI reads instructions from multiple sources with this priority:
 
 ```
 1. Prompt (highest) - What you type
-2. AGENTS.md - Nearest in directory tree
+2. AGENTS.md - Nearest in directory tree (also CLAUDE.md and GEMINI.md, in git root and cwd)
 3. .github/copilot-instructions.md - Repository-wide
-4. .github/instructions/*.instructions.md - Path-specific
-5. Personal instructions - ~/.copilot/instructions.md
-6. Default behavior (lowest)
+4. .github/instructions/**/*.instructions.md - Path-specific
+5. Personal instructions - ~/.copilot/copilot-instructions.md
+6. Personal path-specific - ~/.copilot/instructions/**/*.instructions.md
+7. Additional directories - via COPILOT_CUSTOM_INSTRUCTIONS_DIRS
+8. Default behavior (lowest)
 ```
 
 ### File Purposes
@@ -34,6 +36,8 @@ Copilot CLI reads instructions from multiple sources with this priority:
 | File | Scope | Purpose |
 | --- | --- | --- |
 | `AGENTS.md` | Directory tree | Agent persona and behavior |
+| `CLAUDE.md` | Git root and cwd | Agent persona and behavior (cross-tool) |
+| `GEMINI.md` | Git root and cwd | Agent persona and behavior (cross-tool) |
 | `copilot-instructions.md` | Repository | Coding standards and conventions |
 | `*.instructions.md` | File patterns | Language/path-specific rules |
 
@@ -45,7 +49,7 @@ Use `/instructions` inside an interactive session to view and toggle which custo
 /instructions
 ```
 
-This displays all discovered instruction files (AGENTS.md, copilot-instructions.md, `*.instructions.md`, personal instructions) with their status. You can enable or disable individual files without deleting them — useful for debugging which instructions are affecting behavior.
+This displays all discovered instruction files (AGENTS.md, CLAUDE.md, GEMINI.md, copilot-instructions.md, `*.instructions.md`, and personal instructions from `~/.copilot/`) with their status. You can enable or disable individual files without deleting them — useful for debugging which instructions are affecting behavior.
 
 | Action | Example |
 | --- | --- |
@@ -481,6 +485,8 @@ Commit messages follow Conventional Commits format.
 
 - ✅ `copilot-instructions.md` sets repository-wide standards
 - ✅ `AGENTS.md` defines agent persona and boundaries
+- ✅ `CLAUDE.md` and `GEMINI.md` are also read from the git root and cwd
+- ✅ Personal instructions live at `~/.copilot/copilot-instructions.md` and `~/.copilot/instructions/**/*.instructions.md`
 - ✅ Path-specific instructions target file types with `applyTo`
 - ✅ Nested AGENTS.md files enable directory-specific behavior
 - ✅ Commit conventions should be explicitly documented
