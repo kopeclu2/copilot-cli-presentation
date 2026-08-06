@@ -1,6 +1,13 @@
 {
     "name": "copilot-cli-deep-dive-workshop",
-    "image": "mcr.microsoft.com/devcontainers/python:3.11-bookworm",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "args": {
+            "NPM_CONFIG_REGISTRY": "${localEnv:NPM_CONFIG_REGISTRY}",
+            "PIP_INDEX_URL": "${localEnv:PIP_INDEX_URL}",
+            "RestoreSources": "${localEnv:RestoreSources}"
+        }
+    },
     "runArgs": [
         "--name",
         "ccddw"
@@ -12,7 +19,7 @@
             "installOhMyZshConfig": true
         },
         "ghcr.io/devcontainers/features/docker-outside-of-docker": {},
-        "ghcr.io/devcontainers/features/node": {
+        "ghcr.io/devcontainers/features/node:2.1.0": {
             "version": "lts"
         },
         "ghcr.io/devcontainers/features/azure-cli:1": {},
@@ -22,7 +29,10 @@
         },
         "ghcr.io/stuartleeks/dev-container-features/shell-history": {},
         "ghcr.io/devcontainers/features/github-cli": {},
-        "ghcr.io/devcontainers/features/copilot-cli": {}
+        "ghcr.io/devcontainers/features/copilot-cli": {},
+        "ghcr.io/rosstaco/devcontainer-features/copilot-persistence": {},
+        "ghcr.io/jsburckhardt/devcontainer-features/tmux": {},
+        "ghcr.io/jsburckhardt/devcontainer-features/glow": {}
     },
     "customizations": {
         "vscode": {
