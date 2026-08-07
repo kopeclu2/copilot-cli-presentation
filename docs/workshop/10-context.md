@@ -44,17 +44,19 @@ Context is everything Copilot "remembers" during a session:
 
 ### Context Window Tier
 
-You can select a context window tier for tiered-pricing models using the `--context` flag or the `contextTier` config option:
+You can select a context window tier for tiered-pricing models using the `--context` flag or the `contextTier` setting:
 
 ```bash
 # Use long context mode for a session
 copilot --context long_context
 
-# Or set in config.json
-# "contextTier": "long_context"
+# Or set "contextTier": "long_context" in ~/.copilot/settings.json
 ```
 
 Available tiers: `"default"` and `"long_context"`. The `/model` command shows a context tier picker for eligible models.
+
+> [!WARNING]
+> User settings belong in `~/.copilot/settings.json` — you can also edit them with `/settings`. The `~/.copilot/config.json` file next to it is managed automatically and stores your authentication token. Never print, paste, or share its contents, especially while screen-sharing.
 
 ### Including Files with `@`
 
@@ -526,7 +528,7 @@ Systematic workflow keeps context under control.
 - ✅ Efficient prompting extends useful session length
 - ✅ Explore agent preserves main context
 - ✅ `@` file mentions support absolute, home, and parent paths
-- ✅ `--context` flag and `contextTier` config select context window tier for eligible models
+- ✅ `--context` flag and the `contextTier` setting in `~/.copilot/settings.json` select the context window tier for eligible models
 - ✅ Reasoning token usage shown in per-model breakdown via `/usage`
 
 ## Next Steps

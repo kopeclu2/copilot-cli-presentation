@@ -107,6 +107,28 @@ description: Generates API documentation from source code
 # Markdown body with detailed instructions...
 ```
 
+Optional frontmatter: `license`, `user-invocable`, `aliases`,
+`allowed-tools`, `disable-model-invocation`
+
+---
+
+## Built-in Skills
+
+Two skills ship with the CLI and need **no configuration**:
+
+| Skill | What it does |
+|-------|--------------|
+| `customize-cloud-agent` | Configure the Copilot cloud agent environment — `copilot-setup-steps.yml`, preinstalled tools, runners, settings |
+| `github-pr-media` | Upload images/video to GitHub's user attachments API and embed them in a PR description or comment |
+
+```bash
+copilot skill list      # built-ins listed alongside your skills
+```
+
+> Built-ins can't be deleted, but they can be disabled
+> (`copilot plugins disable <name> --skill`) or overridden by a
+> project/personal skill with the same name
+
 ---
 
 ## Skill Locations
@@ -126,6 +148,7 @@ description: Generates API documentation from source code
 copilot skill add --project ./my-skill/SKILL.md
 copilot skill add https://example.com/my-skill/SKILL.md
 copilot skill list --json
+copilot skill remove my-skill
 ```
 
 ---
@@ -139,8 +162,8 @@ Open **Module 6** in `docs/workshop/06-skills.md`
 - **Exercise 1** — Create a project skill
 - **Exercise 2** — Skill with resource files
 - **Exercise 3** — Personal skills
-- **Exercise 4** — Discover skills from agentskills.io
+- **Exercise 4** — Discover and install community skills
 - **Exercise 5** — Skill with scripts
-- **Exercise 6** — Skill invocation
+- **Exercise 6** — Understanding skill auto-selection
 
 ⏱️ You have **~16 minutes**

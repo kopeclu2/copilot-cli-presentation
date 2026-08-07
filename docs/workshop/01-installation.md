@@ -35,7 +35,7 @@ Copilot CLI supports multiple installation methods:
 | --- | --- | --- |
 | **Script** | `curl -fsSL https://gh.io/copilot-install \| bash` | Quick setup |
 | npm | `npm install -g @github/copilot` | Node.js developers |
-| Homebrew | `brew install copilot-cli` | macOS/Linux users |
+| Homebrew (cask) | `brew install --cask copilot-cli` | macOS users |
 | WinGet | `winget install GitHub.Copilot` | Windows users |
 | Dev Container | Built-in | Codespaces users |
 
@@ -59,6 +59,13 @@ copilot version
 ```
 
 Inside an interactive session, use `/version` to display version information and check for updates.
+
+`copilot update` follows the stable channel. To choose a channel explicitly:
+
+```bash
+copilot update stable
+copilot update prerelease
+```
 
 ### Shell Completion
 
@@ -156,7 +163,7 @@ GitHub Copilot CLI <version>
 GitHub Copilot CLI <version>
 ```
 
-### Exercise 1c: Install via Homebrew (macOS/Linux) option
+### Exercise 1c: Install via Homebrew (macOS) option
 
 **Goal:** Install using Homebrew package manager.
 
@@ -171,8 +178,10 @@ GitHub Copilot CLI <version>
 2. Install Copilot CLI:
 
  ```bash
- brew install copilot-cli
+ brew install --cask copilot-cli
  ```
+
+ > **Note:** Copilot CLI ships as a Homebrew **cask**, so it is available on macOS. The unrelated `copilot` *formula* is a different project — always install the `copilot-cli` cask.
 
 3. Verify installation:
 
@@ -228,9 +237,9 @@ GitHub Copilot CLI <version>
 
 2. When prompted, press Enter to authenticate.
 
-3. A browser window opens. Sign in to GitHub if needed.
+3. Copilot starts the OAuth flow. On a local desktop it opens your browser and captures the result on a loopback callback. In remote or headless environments (SSH, Codespaces, dev containers, CI, headless Linux) it uses the device code flow instead. Force a mode with `copilot login --web-flow` or `copilot login --device-code`.
 
-4. Authorize the application when prompted.
+4. Sign in to GitHub if needed, and authorize the application when prompted.
 
 5. Return to your terminal. You should see the Copilot prompt:
 
@@ -280,6 +289,8 @@ Copilot correctly identifies your working directory and shows available commands
 | `/logout` shows warning | When signed in via gh CLI, PAT, API key, or env var, `/logout` displays a warning explaining that the credential source must be removed separately |
 | Auto-update interfering | Disable with `--no-auto-update` or set `COPILOT_AUTO_UPDATE=false` |
 | Auth fails in Docker/container | Use fine-grained PAT auth: `export GH_TOKEN="github_pat_..."`. See [Authentication in Containers](#authentication-in-containers-and-cicd) below |
+| Classic PAT rejected | Classic personal access tokens (`ghp_`) are not supported. Use a fine-grained PAT with the "Copilot Requests" permission |
+| Browser never opens on a remote host | Remote and headless environments use the device code flow. Run `copilot login --web-flow` to force the browser flow, or `copilot login --device-code` to request the device code explicitly |
 
 ### Fixing npm Permissions
 
@@ -336,13 +347,15 @@ This stores credentials separately from github.com, allowing you to connect to y
 ## Summary
 
 - ✅ Copilot CLI requires current Node.js LTS for npm installation
-- ✅ Multiple installation methods: npm, Homebrew, script, WinGet
-- ✅ Authentication uses GitHub OAuth in your browser
+- ✅ Multiple installation methods: script, npm, Homebrew cask (macOS), WinGet
+- ✅ Authentication uses GitHub OAuth: browser flow on local desktops, device code flow in remote and headless environments
+- ✅ `copilot login --web-flow` and `copilot login --device-code` force a specific OAuth mode
 - ✅ GHEC data residency supported via `copilot login --host`
 - ✅ Organization members need admin-enabled CLI policy
 - ✅ Dev Containers and Codespaces include Copilot CLI by default
 - ✅ Auto-updates can be disabled with `--no-auto-update`
 - ✅ Use `--version`, `copilot version`, and `/version` to inspect the installed version
+- ✅ `copilot update` takes a `stable` (default) or `prerelease` channel argument
 - ✅ `/logout` warns when credential source is external (gh CLI, PAT, env var)
 - ✅ Shell completion available for bash, zsh, and fish via `copilot completion`
 - ✅ Classic PATs are not supported — use fine-grained PATs with "Copilot Requests" permission

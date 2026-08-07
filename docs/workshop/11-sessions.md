@@ -34,6 +34,15 @@ Sessions are stored in your Copilot config directory:
 - Default: `~/.copilot/`
 - Custom: Set via `COPILOT_HOME` environment variable
 
+Within that directory, session data lives in two places:
+
+| Path | Contents |
+| --- | --- |
+| `~/.copilot/session-state/<session-id>/` | Per-session transcript (`events.jsonl`), checkpoints, rewind snapshots, and workspace metadata |
+| `~/.copilot/session-store.db` | Index of all sessions used by `/session`, `/resume`, and `--resume` |
+
+Manage this data with the `/session` subcommands rather than by deleting files by hand.
+
 ## Hands-On Exercises
 
 ### Exercise 1: Session Persistence
@@ -377,8 +386,25 @@ Session transcript saved for future reference or sharing.
 | `/share` | Export session transcript (interactive alternative to `--share` flag) | `/share` |
 | `/share html` | Export session as self-contained interactive HTML file; shows `file://` URL and `Ctrl+X O` to open | `/share html` |
 | `/model` | Switch AI model | `/model` |
-| `/undo` | Undo the last turn when possible | `/undo` |
-| `/rewind` | Roll back to any point in conversation history (also via double-Esc) | `/rewind` |
+| `/rewind` (alias `/undo`) | Rewind the last turn and revert file changes; also available via double-Esc | `/rewind` |
+
+### `/session` Subcommands
+
+`/session` on its own opens the session manager. Add a subcommand to go straight to a specific view or action:
+
+| Subcommand | Description |
+| --- | --- |
+| `/session` | Open the session picker |
+| `/session <id>` | Switch to a session by ID |
+| `/session info` | Show details about the current session |
+| `/session checkpoints [n]` | List checkpoints for the current session |
+| `/session files` | List files touched in the current session |
+| `/session plan` | Show the current session's plan |
+| `/session rename [name]` | Rename the current session, or auto-generate a name |
+| `/session cleanup` | Remove stale session records |
+| `/session prune` | Prune old session data |
+| `/session delete [id]` | Delete a session |
+| `/session delete-all` | Delete all sessions |
 
 ## Command Line Flags
 
@@ -390,18 +416,18 @@ Session transcript saved for future reference or sharing.
 | `--connect[=sessionId]` | Connect directly to a remote session (optionally specify session ID or task ID) |
 | `--share PATH` | Export to markdown file |
 | `--share-gist` | Export to GitHub Gist |
-| `--silent` | Suppress stats/logs |
+| `--silent` | Output only agent response (no stats) |
 
 ## Summary
 
 - ✅ Sessions maintain conversation history and context
 - ✅ Use `--resume` to continue previous sessions
 - ✅ `/clear` abandons the session; `/new` starts fresh while keeping the old session backgrounded
-- ✅ `/undo` undoes the last turn when possible
-- ✅ `/rewind` (or double-Esc) opens a timeline picker for rolling back to any conversation point
+- ✅ `/rewind` (alias `/undo`, or double-Esc) rewinds the last turn and reverts file changes
 - ✅ `/rename` auto-generates a session name from conversation history when called without arguments
 - ✅ `--name` flag sets a session name at launch; `--resume` accepts a session name for lookup
 - ✅ `/cwd` and `/add-dir` control file access scope; `/cwd` sets the working directory per session
+- ✅ `/session` subcommands inspect and prune session data (`info`, `checkpoints`, `files`, `prune`, `delete-all`)
 - ✅ Run multiple sessions in different terminals
 - ✅ Export sessions with `--share` for documentation or `/share html` for interactive HTML
 - ✅ `/share html` shows `file://` URL and `Ctrl+X O` shortcut to open in browser

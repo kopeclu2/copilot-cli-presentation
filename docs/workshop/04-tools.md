@@ -12,22 +12,33 @@
 - Master the permission approval workflow
 - Use `--allow-tool` and `--deny-tool` flags effectively
 - Understand `--yolo` mode and when to use it safely
+- Switch permission modes with `/permissions`
+- Understand command sandboxing as an additional restriction layer
 - Configure trusted directories
 
 ## Concepts
 
 ### Built-in Tools
 
-Copilot CLI includes several built-in tools:
+Copilot CLI registers a set of built-in tools in every session:
 
 | Tool | Purpose | Risk Level |
 |------|---------|------------|
-| `shell` | Execute shell commands | ⚠️ High |
-| `write` | Create/modify files | ⚠️ High |
-| `read` | Read file contents | Low |
-| `show_file` | Present code/diffs to user in a prominent view | Low |
-| `web_fetch` | Fetch web content | Medium |
-| `mcp` | Use MCP server tools | Varies |
+| `bash` | Execute shell commands (`read_bash`, `list_bash`, `stop_bash` manage background shells) | ⚠️ High |
+| `create` / `edit` | Create files and make precise edits to existing files | ⚠️ High |
+| `view` | Read files and list directories | Low |
+| `glob` / `grep` | Find files by pattern and search file contents | Low |
+| `web_fetch` / `web_search` | Fetch a URL and search the web | Medium |
+| `fetch_copilot_cli_documentation` | Look up Copilot CLI's own documentation | Low |
+| `task` / `read_agent` / `write_agent` / `list_agents` | Delegate work to subagents and exchange messages with them | Varies |
+| `skill` | Load a skill's instructions on demand | Low |
+| `sql` / `session_store_sql` | Query the agent's session database (to-do list, session history) | Low |
+| `run_factory` | Run parallel agent factories (used by fleet mode) | Varies |
+| `ask_user` | Ask you a clarifying question (interactive sessions; disable with `--no-ask-user`) | Low |
+| MCP server tools | Tools contributed by configured MCP servers, prefixed with the server name | Varies |
+
+> [!NOTE]
+> Permission rules match **kinds**, which are not the same as tool names. `copilot help permissions` defines exactly four kinds: `shell(command)`, `write(path)`, `<mcp-server-name>(tool-name)`, and `url(domain-or-url)`. So `--allow-tool 'shell(git status)'` is a rule kind, while `bash` is the tool that runs the command. Use `--available-tools`/`--excluded-tools` when you need to filter by tool name.
 
 ### Permission Model
 
@@ -70,6 +81,54 @@ Tool availability and tool permission are separate controls:
 
 Deny rules always take precedence over allow rules.
 
+### Permission Modes
+
+`/permissions` switches the session between permission modes, and `/permissions show` reports the current one:
+
+| Mode | Behavior |
+|---|---|
+| `manual` | Require approval for each request |
+| `assisted` | Approve requests an LLM safety check deems safe; prompt otherwise |
+| `allow-all` | Auto-approve all tool, path, and URL requests |
+| `show` | Display the current mode without changing it |
+
+Running `/permissions` with no argument opens the interactive mode picker.
+
+### Command Sandboxing
+
+Command sandboxing is a third layer alongside tool permissions and path permissions. When it is enabled, shell commands run inside an OS-level sandbox with restricted filesystem and network access, so a command the agent runs cannot reach outside the policy you configured.
+
+Sandboxing is an experimental feature: the `/sandbox` command is only registered when experimental features are on. Turn them on with the `--experimental` flag or `/settings experimental on`.
+
+```text
+/sandbox            # Show status; in interactive mode, opens the policy dialog
+/sandbox enable     # Turn command sandboxing on
+/sandbox disable    # Turn command sandboxing off
+```
+
+Sandboxing is powered by Microsoft Execution Containers (MXC), which maps the policy onto each platform's isolation primitives: Seatbelt (`sandbox-exec`) on macOS, bubblewrap (`bwrap`) on Linux, and ProcessContainer on Windows. If your host cannot run the backend, sandboxed shell commands fail rather than falling back to unsandboxed execution.
+
+Sandbox settings live under the `sandbox` key in `~/.copilot/settings.json` and can also be edited from the `/sandbox` dialog:
+
+| Setting | Purpose |
+|---|---|
+| `sandbox.enabled` | Whether command sandboxing is on |
+| `sandbox.addCurrentWorkingDirectory` | Grant read/write access to the working directory |
+| `sandbox.allowDevToolAccess` | Auto-grant the dev-tool caches and config that builds need |
+| `sandbox.allowBypass` | Allow a per-command escape hatch out of the sandbox |
+| `sandbox.gitAuth` / `sandbox.ghAuth` | Inject git and `gh` credentials into sandboxed commands |
+| `sandbox.sandboxMcpServers` / `sandbox.sandboxLspServers` | Also sandbox local (stdio) MCP and LSP servers |
+| `sandbox.userPolicy.filesystem.readwritePaths` / `readonlyPaths` / `deniedPaths` | Extra paths to grant or deny |
+| `sandbox.userPolicy.network.allowOutbound` / `allowLocalNetwork` | Control outbound and local-network access |
+| `sandbox.userPolicy.seatbelt.keychainAccess` | Allow system keychain access from inside the sandbox (macOS) |
+
+> [!NOTE]
+> Remote (HTTP/SSE) MCP servers are never sandboxed. The sandbox also inherits your shell environment apart from a fixed blocklist, so credentials already exported in your environment remain visible to sandboxed commands — use `--secret-env-vars` to strip the ones that matter.
+>
+> An organization policy can enforce sandboxing. When it does, `/sandbox disable` is refused and a local `sandbox.enabled: false` is overridden.
+
+Run `copilot help sandbox` for the full reference.
+
 ## Hands-On Exercises
 
 ### Exercise 1: Understanding Tool Prompts
@@ -95,7 +154,7 @@ Deny rules always take precedence over allow rules.
  ```
 
 4. Observe the tool approval prompt. It shows:
- - Tool name: `write`
+ - Tool name: `create` (matched by the `write` permission kind)
  - File path: `test.txt`
  - Content preview
  - Three approval options
@@ -326,15 +385,17 @@ You understand YOLO mode's power and risks.
 
 3. Select **Yes, proceed** for now.
 
-4. In a side terminal, check the config:
+4. In a side terminal, check whether the folder was remembered. Read **only** the `trustedFolders` key:
  ```bash
- cat ~/.copilot/config.json
+ grep -v '^[[:space:]]*//' ~/.copilot/config.json | jq -r '.trustedFolders[]?'
  ```
  Notice that `trustedFolders` was **not** updated (you chose session-only trust).
 
-5. To permanently skip the prompt for specific directories, add them to your config:
- ```bash
- # Edit config.json to add:
+ > [!WARNING]
+ > Never print, `cat`, or share the whole of `~/.copilot/config.json`. It is managed automatically by the CLI and stores your live Copilot authentication token alongside `trustedFolders`. Read only the specific key you need, as above — especially while screen-sharing. Your own settings belong in `~/.copilot/settings.json`, which you can edit with `/settings`.
+
+5. To permanently skip the prompt for specific directories, add them to `~/.copilot/config.json`:
+ ```json
  {
  "trustedFolders": [
  "/home/user/projects",
@@ -342,7 +403,10 @@ You understand YOLO mode's power and risks.
  ]
  }
  ```
- Next time you launch Copilot from those directories, it won't ask for trust confirmation.
+ Next time you launch Copilot from those directories, it won't ask for trust confirmation. Choosing **Yes, and remember** at the trust prompt writes the same entry for you, which is the safer way to do it.
+
+ > [!IMPORTANT]
+ > Folder trust also gates repository hooks: `.github/hooks/*.json` is discovered but never executed in an untrusted folder, and no error is shown. See [Module 9: Hooks](09-hooks.md).
 
 #### Part B: Runtime File Access
 
@@ -546,14 +610,20 @@ copilot -p "Fix all linting errors" --allow-all-tools --no-ask-user
 
 | Command | Description |
 |---------|-------------|
+| `/permissions [manual\|assisted\|allow-all\|show]` | Switch permission modes, or show the current one |
+| `/allow-all` | Enable all permissions (tools, paths, and URLs) |
 | `/reset-allowed-tools` | Reset the list of tools approved during the session |
 | `/add-dir <path>` | Add a trusted directory for the session (supports relative paths like `./src`, `../sibling`) |
 | `/list-dirs` | View accessible directories |
+| `/sandbox [enable\|disable]` | Show or change command sandboxing (requires experimental features) |
 
 ## Summary
 
 - ✅ Copilot requires approval for high-risk actions; some low-risk tools may be pre-approved by environment policy
+- ✅ Built-in tools include `bash`, `create`, `edit`, `view`, `glob`, `grep`, `web_fetch`, `web_search`, `task`, and `skill`
+- ✅ Permission rules match kinds — `shell`, `write`, `<mcp-server-name>`, and `url` — not tool names
 - ✅ One-time vs session-wide approval gives granular control
+- ✅ `/permissions` switches between `manual`, `assisted`, and `allow-all` modes
 - ✅ Use `/reset-allowed-tools` to clear session approvals
 - ✅ `--allow-tool` and `--deny-tool` enable automation
 - ✅ Deny rules take precedence over allow rules
@@ -565,6 +635,8 @@ copilot -p "Fix all linting errors" --allow-all-tools --no-ask-user
 - ✅ `--no-ask-user` enables fully autonomous operation
 - ✅ Path permission dialog offers one-time approval
 - ✅ `/add-dir` accepts relative paths like `./src` and `../sibling`
+- ✅ Command sandboxing adds an OS-level restriction layer on top of tool and path permissions
+- ✅ `~/.copilot/config.json` is managed automatically and holds credentials — never print or share it
 
 ## Next Steps
 

@@ -68,7 +68,7 @@ style: |
 | **ACP** | Agent Client Protocol server |
 | **CI/CD** | Pipeline integration |
 | **Environment** | Config, env vars, `--bash-env` |
-| **LSP** | Language server timeout config |
+| **LSP** | Language server configuration |
 | **Research & Chronicle** | Deep research, session insights |
 | **Team workflows** | Standardization patterns |
 
@@ -147,9 +147,10 @@ Key flags for automation: `--silent`, `--allow-tool`, `--deny-tool`
 
 | File | Purpose |
 |------|---------|
-| `~/.copilot/config.json` | User settings, trusted folders |
+| `~/.copilot/settings.json` | User settings |
+| `~/.copilot/config.json` | Machine-managed state + credentials — **do not print** |
 | `~/.copilot/mcp-config.json` | MCP servers |
-| `~/.copilot/lsp.json` | Language server timeouts |
+| `~/.copilot/lsp-config.json` | Language server definitions |
 
 ```bash
 # Source custom env in shell sessions
@@ -163,6 +164,74 @@ export COPILOT_GITHUB_TOKEN="github_pat_..." # highest priority
 export GH_TOKEN="github_pat_..."
 export GITHUB_TOKEN="github_pat_..." # lowest priority
 ```
+
+---
+
+## BYOK & Offline Mode
+
+**Bring Your Own Key** — set `COPILOT_PROVIDER_BASE_URL` to activate BYOK mode with a custom model provider. GitHub authentication is not required when using a custom provider.
+
+```bash
+# Ollama (local, no API key required)
+COPILOT_PROVIDER_BASE_URL=http://localhost:11434/v1 \
+  COPILOT_MODEL=local-code-model \
+  copilot
+```
+
+**Offline mode** — `COPILOT_OFFLINE=true` skips all network access: GitHub authentication, telemetry, web tools, GitHub MCP server, and auto-update are disabled. Requires a local model provider.
+
+> `copilot help providers` documents Azure, Anthropic, and OpenAI-compatible providers
+
+---
+
+## Language Servers
+
+None run by default — define them explicitly
+
+```json
+{
+  "lspServers": {
+    "typescript": {
+      "command": "typescript-language-server",
+      "args": ["--stdio"],
+      "fileExtensions": { ".ts": "typescript", ".tsx": "typescriptreact" }
+    }
+  }
+}
+```
+
+`~/.copilot/lsp-config.json` (personal) · `.github/lsp.json` (project)
+
+```
+/lsp show        # configured servers
+/lsp test NAME   # does it start?
+/lsp reload      # reload from disk
+/lsp logs        # live status + server logs
+```
+
+---
+
+## Help Topics & Session Limits
+
+```bash
+copilot help billing | commands | config | environment | limits
+copilot help logging | monitoring | permissions | providers | sandbox
+```
+
+**Session limits are opt-in** — a soft cap on AI credits
+
+```bash
+copilot --max-ai-credits 30        # minimum is 30
+```
+
+```
+/limits                            # interactive dialog
+/limits set max-ai-credits 50
+/limits predict
+/limits unset max-ai-credits
+```
+
+> `/clear` and `/new` reset used credits but keep the limit
 
 ---
 
@@ -189,9 +258,12 @@ alias cop-resume='copilot --resume'
 
 **`/chronicle`** (experimental) — session-history insights:
 ```
-/chronicle standup # what you accomplished
-/chronicle tips # feature suggestions
-/chronicle improve # workflow improvements
+/chronicle standup    # your work from the last day
+/chronicle search     # search all session content
+/chronicle tips       # personalized usage tips
+/chronicle cost-tips  # reduce token usage and cost
+/chronicle improve    # improve copilot-instructions.md
+/chronicle reindex    # reload the session store index
 ```
 
 > ⚠️ `/chronicle` is experimental — subcommands may change
@@ -208,21 +280,10 @@ Open **Module 12** in `docs/workshop/12-advanced.md`
 - **Exercise 2** — CI/CD integration
 - **Exercise 3** — Advanced CLI flags
 - **Exercise 4–5** — Autopilot mode & fleet command
-- **Exercise 6–7** — Shell config & LSP setup
-- **Exercise 8–11** — Config, troubleshooting & team workflows
+- **Exercise 6** — Shell config & `--bash-env`
+- **Exercise 7** — Language server configuration
+- **Exercise 8–10** — Settings, troubleshooting & team workflows
+- **Exercise 11** — Performance optimization
 - **Exercise 12** — `/research` deep research & `/chronicle` insights
 
 ⏱️ You have **~24 minutes**
-
----
-
-# 🎉 Workshop Complete!
-
-### What you've learned across all modules:
-
-Installation → Modes → Sessions → Instructions → Tools
-→ MCP → Skills → Plugins → Agents → Hooks → Context → Advanced
-
-**Next steps:** Practice daily, create custom agents, share skills with your team
-
-> Resources: [docs.github.com/copilot](https://docs.github.com/en/copilot) · [agentskills.io](https://agentskills.io)

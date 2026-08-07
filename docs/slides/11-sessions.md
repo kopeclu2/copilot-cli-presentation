@@ -91,12 +91,31 @@ copilot    prompts + tools    /exit or Ctrl+C
 | `/session` | Show session info (ID, duration, files) |
 | `/usage` | Token consumption and API calls |
 | `/rename NAME` | Name your session for easy finding |
-| `/clear` | Abandon session and start fresh |
+| `/clear` | Abandon session and start fresh (session is discarded) |
+| `/new` | Start new conversation (old session stays backgrounded) |
 | `/resume` | Switch to a previous session |
 | `--continue` | Resume most recent session from CLI |
 | `/share` | Export to markdown or GitHub Gist |
-| `/undo` | Undo last turn when possible |
-| `/rewind` | Roll back through session timeline |
+| `/rewind` (alias `/undo`) | Rewind the last turn and revert file changes |
+
+---
+
+## Session Data on Disk
+
+| Path | Contents |
+|------|----------|
+| `~/.copilot/session-state/<id>/` | Transcript, checkpoints, rewind snapshots |
+| `~/.copilot/session-store.db` | Index used by `/session`, `/resume`, `--resume` |
+
+Manage it with subcommands, not `rm`:
+
+```
+/session info          # details about this session
+/session checkpoints   # list checkpoints
+/session files         # files touched
+/session prune         # prune old session data
+/session delete-all    # delete every session
+```
 
 ---
 
@@ -120,15 +139,17 @@ Copilot can only access directories you've allowed
 
 ---
 
-## When to Clear vs Compact
+## When to Clear, Compact, or Start New
 
-| Situation | Action |
+| Scenario | Action |
 |-----------|--------|
-| Switching to unrelated task | `/clear` |
-| Confused or wrong responses | `/clear` |
-| Context getting full | `/compact` first |
-| Sensitive info discussed | `/clear` + `/exit` |
-| Session becoming slow | `/clear` |
+| Switching to unrelated task | `/new` (keeps old session) or `/clear` (abandons) |
+| Confused responses | `/new` |
+| Context limit approaching | `/compact` first, then `/new` if needed |
+| Sensitive info discussed | `/clear` and `/exit` |
+| Session becomes slow | `/new` |
+
+> `/clear` **abandons** the session — `/new` keeps it **backgrounded**
 
 ---
 

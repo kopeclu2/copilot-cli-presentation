@@ -74,7 +74,7 @@ style: |
 |--------|---------|----------|
 | **Script** | `curl -fsSL https://gh.io/copilot-install \| bash` | Quick setup |
 | npm | `npm install -g @github/copilot` | Node.js devs |
-| Homebrew | `brew install copilot-cli` | macOS/Linux |
+| Homebrew | `brew install --cask copilot-cli` | macOS |
 | WinGet | `winget install GitHub.Copilot` | Windows |
 | Dev Container | Built-in | Codespaces |
 
@@ -85,15 +85,56 @@ style: |
 ## Authentication
 
 ```bash
-# Start Copilot — browser opens for OAuth
+# Start Copilot — OAuth flow begins
 copilot
+
+# Force a specific OAuth mode
+copilot login --web-flow      # browser (default on desktops)
+copilot login --device-code   # default when remote/headless
 
 # Or use a token (CI/CD, containers)
 export COPILOT_GITHUB_TOKEN="github_pat_your_token"
 copilot
 ```
 
-For containers/CI: create a **fine-grained PAT** with **"Copilot Requests"** permission
+For containers/CI: create a **fine-grained PAT** with **"Copilot Requests"** permission — classic PATs (`ghp_`) are **not** supported
+
+---
+
+## Enterprise Cloud & Signing Out
+
+**GHEC data residency** — authenticate against your enterprise host:
+
+```bash
+copilot login --host https://example.ghe.com
+```
+
+Credentials are stored separately from github.com, so you connect to your
+enterprise's dedicated environment.
+
+**Signing out:** when you signed in via the **gh CLI, a PAT, an API key, or an
+env var**, `/logout` displays a warning — that credential source must be
+removed separately.
+
+---
+
+## Shell Completion
+
+Tab completion for `copilot` subcommands and flags:
+
+```bash
+# Bash (current session)
+source <(copilot completion bash)
+
+# Bash (persistent, Linux)
+copilot completion bash | sudo tee /etc/bash_completion.d/copilot
+
+# Zsh — write to a directory on your $fpath, then restart the shell
+copilot completion zsh > "${fpath[1]}/_copilot"
+
+# Fish
+copilot completion fish > ~/.config/fish/completions/copilot.fish
+```
 
 ---
 
@@ -126,6 +167,10 @@ copilot --version
 
 # Check for updates
 copilot version
+
+# Update on a specific channel
+copilot update stable
+copilot update prerelease
 
 # Inside a session:
 /version

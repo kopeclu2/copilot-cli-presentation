@@ -94,20 +94,20 @@ Slash commands are prefixed with `/` and provide quick access to CLI features wi
 
 | Category | Commands | Purpose |
 | --- | --- | --- |
-| **Session** | `/clear`, `/new`, `/session`, `/resume`, `/rename`, `/usage` | Manage session lifecycle |
+| **Session** | `/clear`, `/new`, `/session`, `/resume`, `/rename`, `/fork`, `/usage` | Manage session lifecycle |
 | **Navigation** | `/cwd`, `/add-dir`, `/list-dirs` | Control directory scope |
 | **Context** | `/context`, `/compact` | Monitor and optimize token usage |
-| **Quick** | `/ask` | Ask a quick question without affecting conversation history |
+| **Quick** | `/ask`, `/refine` | Ask a quick question or clean up a rough prompt |
 | **Environment** | `/env` | Show loaded environment details (instructions, MCPs, skills, plugins) |
-| **Tools** | `/allow-all`, `/reset-allowed-tools` | Manage tool permissions at runtime |
-| **Review** | `/diff`, `/review`, `/rubber-duck`, `/security-review`, `/plan`, `/research`, `/undo`, `/rewind` | Code review, critique, planning, history navigation |
-| **Configuration** | `/model`, `/mcp`, `/plugin`, `/theme`, `/terminal-setup`, `/experimental`, `/instructions`, `/settings`, `/subagents` | Customize CLI behavior |
-| **Extensibility** | `/skills`, `/plugin`, `/agent`, `/fleet` | Manage skills, plugins, agents, and parallel execution |
+| **Tools** | `/permissions`, `/allow-all`, `/reset-allowed-tools` | Manage tool permissions at runtime |
+| **Review** | `/diff`, `/review`, `/rubber-duck`, `/security-review`, `/plan`, `/research`, `/rewind` | Code review, critique, planning, history navigation |
+| **Configuration** | `/model`, `/mcp`, `/plugin`, `/theme`, `/statusline`, `/terminal-setup`, `/experimental`, `/instructions`, `/settings`, `/subagents` | Customize CLI behavior |
+| **Extensibility** | `/skills`, `/plugin`, `/agent`, `/fleet`, `/delegate` | Manage skills, plugins, agents, parallel execution, and cloud delegation |
 | **Scheduling** | `/after`, `/every` | Schedule one-shot or recurring prompts and skills |
 | **Sharing** | `/share`, `/share html`, `/feedback`, `/copy` | Export sessions, copy responses, and submit feedback |
 | **Account** | `/login`, `/logout`, `/user` | Authentication and user management |
 | **IDE** | `/ide` | Connect to IDE workspace |
-| **System** | `/help`, `/exit`, `/init`, `/tasks`, `/lsp`, `/update`, `/restart`, `/chronicle`, `/search`, `/keep-alive`, `/limits`, `/diagnose`, `/app` | General utilities and productivity |
+| **System** | `/help`, `/changelog`, `/exit`, `/init`, `/tasks`, `/lsp`, `/update`, `/restart`, `/version`, `/voice`, `/chronicle`, `/search`, `/keep-alive`, `/limits`, `/diagnose`, `/app` | General utilities and productivity |
 
 #### Keyboard Shortcuts
 
@@ -122,7 +122,7 @@ In addition to slash commands, Copilot CLI supports keyboard shortcuts:
 | `Double-Esc` | Clear input when text is present; trigger undo when prompt is empty |
 | `ctrl+x → /` | Run a slash command |
 | `ctrl+c` | Cancel operation / clear input / exit |
-| `ctrl+d` | Shutdown / exit CLI on empty prompt |
+| `ctrl+d` | Exit the CLI on an empty prompt; use `ctrl+q` or `ctrl+enter` to queue a message instead |
 | `ctrl+l` | Clear the screen |
 | `ctrl+n` | Navigate down (alternative to down arrow) |
 | `ctrl+p` | Navigate up (alternative to up arrow) |
@@ -140,7 +140,6 @@ In addition to slash commands, Copilot CLI supports keyboard shortcuts:
 | `ctrl+f` | Page forward |
 | `ctrl+b` | Page back |
 | `ctrl+g` | Open current prompt in external editor; or dismiss dialog |
-| `ctrl+d` | Exit prompt (no longer queues a message; use `Ctrl+Q` or `Ctrl+Enter` to queue) |
 | `Home` / `End` | Navigate within visual line; jump to top/bottom of scroll buffer |
 | `ctrl+Home` / `ctrl+End` | Jump to text boundaries |
 | `Shift+Tab` | Cycle through modes — (chat) → (plan) → (autopilot) |
@@ -181,9 +180,10 @@ Some commands are covered in depth in later modules (`/mcp` in Module 5, `/skill
 | `/init` | Initialize Copilot instructions and agentic features for a repository |
 | `/tasks` | View and manage background tasks (subagents, shell sessions) |
 | `/rename <name>` | Rename the current session for easy identification; omit name to auto-generate from conversation history |
-| `/theme [show\|set\|list]` | View or configure the terminal color theme |
+| `/settings theme <value>` | Set the color theme (`default`, `github`, `dim`, `high-contrast`, `colorblind`); `/theme` with no argument opens the theme picker |
+| `/statusline` | Configure which items appear in the status line (for example `quota` and `ai-used`) |
 | `/terminal-setup` | Configure terminal for multiline input support (shift+enter) |
-| `/lsp` | View configured Language Server Protocol servers |
+| `/lsp` | Manage language server configuration — view and configure Language Server Protocol servers |
 | `/user [show\|list\|switch]` | Manage GitHub user list (multi-account support) |
 | `/update` | Update the CLI |
 | `/research [prompt]` | Perform deep research with exportable reports |
@@ -192,21 +192,65 @@ Some commands are covered in depth in later modules (`/mcp` in Module 5, `/skill
 | `/ide` | Connect to an IDE workspace (VS Code, etc.) for diagnostics and diff review |
 | `/restart` | Hot restart the CLI while preserving your session |
 | `/version` | Display CLI version and check for updates |
-| `/undo` | Undo the last turn when possible |
-| `/rewind` | Open a timeline picker to roll back to any point in conversation history (also via double-Esc) |
+| `/voice` | Manage voice mode — dictation transcription via Foundry Local |
+| `/rewind` (alias `/undo`) | Rewind the last turn and revert file changes; also available via double-Esc |
+| `/fork [name]` | Fork the current session into a new session, optionally with a name |
+| `/refine` | Rewrite a rough, stream-of-consciousness prompt into a clear one for review (`ctrl+x → /` then `/refine` cleans up your current input) |
+| `/permissions [manual\|assisted\|allow-all\|show]` | Switch between permission modes, or show the current permission status |
+| `/changelog [summarize]` | Display the changelog for CLI releases; add `summarize` for an AI summary |
 | `/new [prompt]` | Start a fresh conversation (keeps old session backgrounded); optionally provide a first message |
 | `/clear [prompt]` | Abandon the current session entirely; optionally provide a first message for the new session |
 | `/allow-all [on\|off\|show]` | Enable, disable, or check allow-all (YOLO) mode |
 | `/share html` | Export session as a self-contained interactive HTML file |
 | `/keep-alive [on\|off\|busy]` | Manage keep-alive mode — prevents system sleep while session is active |
 | `/search` | Search the conversation timeline |
-| `/limits` | View or edit session limits, including AI credit limits |
+| `/limits` | View or edit session limits, including AI credit limits (see [Session Limits](#session-limits) below) |
 | `/memory [on\|off]` | Show or change cross-session memory status |
 | `/pr` | Operate on pull requests for the current branch |
-| `/lsp` | Manage language server configuration |
 | `/subagents` | Configure default and per-agent subagent models |
 | `/after <delay> <prompt>` | Schedule a one-shot prompt or skill to run later |
 | `/every <interval> <prompt>` | Schedule a recurring prompt or skill |
+
+#### Command Aliases
+
+Many commands accept a shorter or more familiar alias. Both forms behave identically:
+
+| Command | Alias | Command | Alias |
+| --- | --- | --- | --- |
+| `/allow-all` | `/yolo` | `/resume` | `/continue` |
+| `/ask` | `/btw` | `/rewind` | `/undo` |
+| `/changelog` | `/release-notes` | `/search` | `/find` |
+| `/clear` | `/reset` | `/session` | `/sessions` |
+| `/cwd` | `/cd` | `/settings` | `/config` |
+| `/every` | `/loop` | `/share` | `/export` |
+| `/exit` | `/quit` | `/skills` | `/skill` |
+| `/feedback` | `/bug` | `/statusline` | `/footer` |
+| `/fork` | `/branch` | `/subagents` | `/agents` |
+| `/keep-alive` | `/caffeinate` | `/update` | `/upgrade` |
+| `/model` | `/models` | | |
+
+#### Session Limits
+
+Session limits are opt-in and cap how many AI credits a session may consume. Usage accumulates across the whole session in both interactive and non-interactive runs, and subagents share the parent session's limit.
+
+Set an initial limit at launch:
+
+```bash
+copilot --max-ai-credits 30
+```
+
+Manage limits from inside a session:
+
+| Command | Description |
+| --- | --- |
+| `/limits` | Open the interactive limits dialog for the current session |
+| `/limits set max-ai-credits <credits>` | Set the AI credit limit (minimum 30) |
+| `/limits unset [max-ai-credits\|all]` | Remove a specific limit, or all limits |
+
+> [!NOTE]
+> The AI credit limit is a **soft cap**. Usage is known only after a model response returns, so a single response can exceed the limit before the CLI observes it — the *next* model call is then blocked. Hidden model work such as compaction also counts toward the limit. In interactive sessions, `/clear` starts a fresh accounting window: used credits reset while the configured limit stays in effect.
+>
+> Run `copilot help limits` and `copilot help billing` from your shell for the full reference on limits and AI credit usage.
 
 #### Commands Available During Agent Work
 
@@ -226,9 +270,19 @@ Some commands are covered in depth in later modules (`/mcp` in Module 5, `/skill
 | `--plan` | Start CLI directly in plan mode |
 | `--agent <agent>` | Start with a specific agent, such as `rubber-duck` for high-signal critique |
 | `-n, --name <name>` | Set a name for the new session |
+| `--session-id <id>` | Resume an existing session or task by ID, or set the UUID for a new session |
+| `-C <directory>` | Change working directory before doing anything else |
+| `--context <tier>` | Set the context window tier, overriding the persisted setting (`default`, `long_context`) |
+| `--effort, --reasoning-effort <level>` | Set the reasoning effort level (`none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`) |
+| `--max-ai-credits <credits>` | Set the max AI credits for this session (minimum 30) |
+| `--max-autopilot-continues <count>` | Maximum number of continuation messages in autopilot mode (default: 5) |
+| `--experimental` / `--no-experimental` | Enable or disable experimental features |
 | `--connect[=sessionId]` | Connect directly to a remote session (optionally specify session ID or task ID) |
-| `--remote` | Start a remote control session |
+| `--remote` | Enable remote control of your session from GitHub web and mobile |
 | `--enable-reasoning-summaries` | Request reasoning summaries for OpenAI models |
+| `--acp` | Start as an Agent Client Protocol server |
+
+> Run `copilot --help` for the complete list of flags, or see [Module 13](13-configuration.md#cli-flags-quick-reference) for the full flag reference.
 
 #### Rubber-Duck Feedback Mode
 
@@ -287,14 +341,14 @@ The security review focuses on high-confidence security findings rather than gen
 
 3. Review the output — you'll see commands grouped with descriptions.
 
-4. Try the `/theme` command to see available themes:
+4. Open the theme picker to see available themes:
  ```
- /theme list
+ /theme
  ```
 
-5. Set a theme (optional):
+5. Apply a theme by name:
  ```
- /theme set <theme-id>
+ /settings theme dim
  ```
 
 6. Check your current working directory:
@@ -684,7 +738,13 @@ You can choose the appropriate mode for any task.
 - ✅ `/rubber-duck` starts a critique-focused feedback turn inside an interactive session
 - ✅ `--agent rubber-duck` starts a critique-focused feedback session
 - ✅ `/after` and `/every` schedule one-shot and recurring prompts
-- ✅ `/undo` undoes the last turn when possible
+- ✅ `/rewind` (alias `/undo`, or double-Esc) rewinds the last turn and reverts file changes
+- ✅ `/permissions` switches between `manual`, `assisted`, and `allow-all` permission modes
+- ✅ `/fork` branches the current session into a new one
+- ✅ `/refine` rewrites a rough prompt into a clear one for review
+- ✅ `/settings theme <value>` sets the color theme; `/theme` opens the theme picker
+- ✅ `/limits` manages opt-in AI credit limits — a soft cap, minimum 30 credits
+- ✅ Most commands have aliases, such as `/yolo` for `/allow-all` and `/cd` for `/cwd`
 - ✅ `--remote` and `/remote` for remote control sessions
 - ✅ `/diff`, `/agent`, `/feedback`, and `/ide` work while agent is running
 - ✅ `Alt+D` deletes word forward in text input
@@ -701,4 +761,4 @@ You can choose the appropriate mode for any task.
 
 - [Copilot CLI - GitHub Docs](https://docs.github.com/copilot/how-tos/copilot-cli)
 - [Use Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-copilot-cli)
-- [Copilot Coding Agent](https://docs.github.com/en/copilot/using-github-copilot/using-the-copilot-coding-agent)
+- [Copilot Coding Agent](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent)

@@ -33,11 +33,16 @@ Session Overrides (flags)
 | Directory | Purpose |
 | --------- | --------- |
 | `~/.copilot/` | Default config location |
-| `~/.copilot/config.json` | User settings |
+| `~/.copilot/settings.json` | User settings |
+| `~/.copilot/config.json` | Machine-managed state and credentials (do not edit) |
 | `~/.copilot/mcp-config.json` | MCP servers |
+| `~/.copilot/lsp-config.json` | Language servers |
 | `~/.copilot/skills/` | Personal skills |
 | `~/.agents/skills/` | Personal skill discovery directory (shared with VS Code extension) |
 | `.github/` | Repository config |
+
+> [!WARNING]
+> `~/.copilot/config.json` is managed automatically and stores your authentication token. Do not print, copy, or share it — especially while screen sharing. Put user settings in `~/.copilot/settings.json`, or use `/settings` to edit them.
 
 ### Commands & Features
 
@@ -61,7 +66,7 @@ The `/pr` command can also automatically fix CI failures, address review feedbac
 
 The `write_agent` tool enables multi-turn conversations with background agents — send follow-up messages to agents spawned via the task tool.
 
-Sub-agents launched by the task tool are assigned **human-readable IDs** based on their name (e.g., `math-helper-0`) instead of generic `agent-0` identifiers.
+Sub-agents launched by the task tool are assigned **human-readable IDs** based on their name (e.g., `math-helper-0`).
 
 The `read_agent` output includes inbound messages that triggered each turn in multi-turn agents.
 
@@ -101,7 +106,7 @@ Use the `--remote` flag or `/remote` command to start a remote control session:
 
 #### `copilot help monitoring`
 
-> The new `copilot help monitoring` topic documents how to configure OpenTelemetry for observability:
+> The `copilot help monitoring` topic documents how to configure OpenTelemetry for observability:
 >
 > ```text
 > copilot help monitoring
@@ -109,12 +114,12 @@ Use the `--remote` flag or `/remote` command to start a remote control session:
 >
 > This covers OTLP exporter configuration, span attributes, and integration with monitoring backends.
 
-#### OpenTelemetry Monitoring Enhancements
+#### OpenTelemetry Monitoring
 
-> OpenTelemetry monitoring has been expanded:
+> OpenTelemetry monitoring covers:
 > - Sub-agent spans are tagged as `INTERNAL` spans for better trace visualization
 > - `time_to_first_chunk` metric tracks latency from request to first streaming chunk
-> - Improved span attributes for debugging agent behavior and performance
+> - Span attributes for debugging agent behavior and performance
 
 #### Custom Model Providers (BYOK)
 
@@ -143,13 +148,33 @@ Use the `--remote` flag or `/remote` command to start a remote control session:
 >
 > | Topic | Content |
 > |-------|---------|
+> | `billing` | AI credit usage |
 > | `commands` | Interactive mode commands |
 > | `config` | Configuration settings |
 > | `environment` | Environment variables |
+> | `limits` | Session limits controls |
 > | `logging` | Logging configuration |
 > | `monitoring` | OpenTelemetry monitoring |
 > | `permissions` | Tool, URL, and path permissions |
 > | `providers` | Custom model providers (BYOK) |
+> | `sandbox` | Command sandboxing |
+
+#### Session Limits & AI Credits
+
+> Session limits are opt-in and cap AI credit consumption for a session. Usage accumulates across the whole conversation, and subagents share the parent session's limit.
+>
+> ```bash
+> # Cap a session at the minimum allowed AI credit limit
+> copilot --max-ai-credits 30
+> ```
+>
+> | Command | Description |
+> | --- | --- |
+> | `/limits` | Open the interactive limits dialog for the current session |
+> | `/limits set max-ai-credits <n>` | Set the AI credit limit (minimum 30) |
+> | `/limits unset [max-ai-credits]` | Remove a configured limit |
+>
+> The AI credit limit is a **soft cap**: usage is only known after a model response returns, so a single call can exceed the limit before the CLI blocks the next one. `/clear` and `/new` reset used credits but keep the configured limit. Run `copilot help limits` and `copilot help billing` for the full reference.
 
 ## Hands-On Exercises
 
@@ -212,27 +237,27 @@ Environment variables customize Copilot behavior.
  name: Copilot Code Review
 
  on:
- pull_request:
- types: [opened, synchronize]
+   pull_request:
+     types: [opened, synchronize]
 
  jobs:
- review:
- runs-on: ubuntu-latest
- steps:
- - name: Checkout repository
- run: git checkout "$GITHUB_SHA"
+   review:
+     runs-on: ubuntu-latest
+     steps:
+       - name: Checkout repository
+         run: git checkout "$GITHUB_SHA"
 
- - name: Install Copilot CLI
- run: npm install -g @github/copilot
+       - name: Install Copilot CLI
+         run: npm install -g @github/copilot
 
- - name: Run Code Review
- env:
- COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
- run: |
- copilot -p "Review the changes in this PR and provide feedback" \
- --allow-tool 'shell(git)' \
- --deny-tool 'write' \
- --silent
+       - name: Run Code Review
+         env:
+           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
+         run: |
+           copilot -p "Review the changes in this PR and provide feedback" \
+             --allow-tool 'shell(git)' \
+             --deny-tool 'write' \
+             --silent
  ```
 
 2. **Pre-commit hook:**
@@ -491,6 +516,9 @@ Copilot autonomously completes multi-step tasks with minimal human intervention.
 
  ```bash
  copilot
+ ```
+
+ ```
  /fleet "Refactor all components in src/components/ to use TypeScript and add unit tests"
  ```
 
@@ -527,7 +555,7 @@ Copilot autonomously completes multi-step tasks with minimal human intervention.
 
 6. **Parallel dispatch optimization:**
 
- ```bash
+ ```
  # Fleet automatically maximizes parallelism
  /fleet "Generate API routes, database models, and tests for User, Product, Order entities"
 
@@ -557,6 +585,9 @@ Copilot autonomously completes multi-step tasks with minimal human intervention.
 
  ```bash
  copilot --allow-tool 'write' --allow-tool 'shell(npm test)'
+ ```
+
+ ```
  /fleet "Create and test all CRUD endpoints for the API"
  ```
 
@@ -625,9 +656,9 @@ Complex tasks are completed faster through parallel sub-agent execution with qua
  # Copilot's shell commands will have access to DB_HOST, DB_PORT, etc.
  ```
 
-4. **Shell mode access change:**
+4. **Shell mode access:**
 
- > **Important**: shell mode is no longer accessible via Shift+Tab cycling.
+ > **Important**: Shift+Tab cycles chat → plan → autopilot. Shell mode is entered with `!`.
 
  **Shell mode is not part of the Shift+Tab cycle.** Instead:
 
@@ -668,176 +699,188 @@ Complex tasks are completed faster through parallel sub-agent execution with qua
  ```
 
 **Expected Outcome:**
-Shell sessions have consistent environment configuration, and you understand the new shell mode access pattern.
+Shell sessions have consistent environment configuration, and you understand how to enter shell mode.
 
 ### Exercise 7: LSP and Language Server Configuration
 
-**Goal:** Configure Language Server Protocol (LSP) timeout settings.
+**Goal:** Configure Language Server Protocol (LSP) servers so Copilot CLI gets real code intelligence for your languages.
 
 **Steps:**
 
-1. **What is LSP timeout configuration?**
+1. **Understand what LSP adds:**
 
- Copilot CLI can use language servers (TypeScript, Python, Go, etc.) for:
- - Code intelligence and completions
+ Copilot CLI can talk to language servers (TypeScript, Python, Ruby, Go, and others) for:
+ - Code intelligence and symbol lookup
  - Jump to definition
  - Find references
- - Type information
+ - Type information and diagnostics
 
- Some language servers may timeout on large codebases. The `lsp.json` config lets you adjust these timeouts.
+ Language servers must be configured explicitly — none are enabled by default. Install the language server binary first, then point Copilot CLI at it.
 
-2. **Create lsp.json configuration:**
+2. **Install a language server:**
 
  ```bash
- # Create LSP config in Copilot config directory
- cat > ~/.copilot/lsp.json << 'EOF'
+ # TypeScript / JavaScript
+ npm install -g typescript typescript-language-server
+
+ # Python
+ npm install -g pyright
+
+ # Ruby
+ gem install ruby-lsp
+ ```
+
+3. **Create the LSP configuration:**
+
+ Copilot CLI reads two files, both using the same schema:
+
+ | File | Scope |
+ | --- | --- |
+ | `~/.copilot/lsp-config.json` | Personal — applies to all your projects |
+ | `.github/lsp.json` | Project — checked in, applies to everyone on the repo |
+
+ ```bash
+ cat > ~/.copilot/lsp-config.json << 'EOF'
  {
- "timeout": {
- "initialization": 30000,
- "request": 10000,
- "shutdown": 5000
- },
- "servers": {
- "typescript": {
- "timeout": {
- "initialization": 60000,
- "request": 20000
- }
- },
- "python": {
- "timeout": {
- "initialization": 45000,
- "request": 15000
- }
- }
- }
+   "lspServers": {
+     "typescript": {
+       "command": "typescript-language-server",
+       "args": ["--stdio"],
+       "fileExtensions": {
+         ".ts": "typescript",
+         ".tsx": "typescriptreact",
+         ".js": "javascript",
+         ".jsx": "javascriptreact"
+       }
+     },
+     "python": {
+       "command": "pyright-langserver",
+       "args": ["--stdio"],
+       "fileExtensions": {
+         ".py": "python",
+         ".pyi": "python"
+       }
+     }
+   }
  }
  EOF
  ```
 
-3. **Timeout values explained:**
- - `initialization`: Time allowed for LSP server to start (milliseconds)
- - `request`: Time allowed for individual LSP requests
- - `shutdown`: Time allowed for graceful shutdown
+ Each server name must be unique and contain only alphanumeric characters, underscores, and hyphens.
 
- **Default values (if not configured):**
- - initialization: 15000ms (15 seconds)
- - request: 90000ms (90 seconds) — increased from 30s
- - shutdown: 3000ms (3 seconds)
+4. **Server definition fields:**
 
-4. **When to adjust LSP timeouts:**
+ | Field | Required | Description |
+ | --- | --- | --- |
+ | `command` | Yes | Executable that starts the language server. Use `bash` or `powershell` instead to launch it through a script |
+ | `args` | No | Arguments passed to the command |
+ | `fileExtensions` | Yes | Map of file extension to language ID, e.g. `{ ".rs": "rust" }` |
+ | `env` | No | Environment variables for the server process; supports `${VAR}` and `${VAR:-default}` expansion |
+ | `cwd` | No | Working directory for the server process |
+ | `rootUri` | No | Project root relative to the git root; defaults to `"."`. Useful in monorepos |
+ | `initializationOptions` | No | Custom options sent to the server during startup |
+ | `requestTimeoutMs` | No | Timeout for individual server requests (default: 90 seconds) |
+ | `initializationTimeoutMs` | No | Timeout for the server's initialize handshake |
+ | `spawnTimeoutMs` | No | Timeout for spawning the server process |
+ | `warmupTimeoutMs` | No | Timeout for the server's initial project load |
+ | `disabled` | No | Set to `true` to keep the definition but stop starting the server |
 
- ```bash
- # Increase if you see errors like:
- # "TypeScript language server initialization timeout"
- # "LSP request timeout for workspace/symbol"
-
- # Common scenarios:
- # - Large monorepos with thousands of files
- # - Slow file systems (network drives, container volumes)
- # - Resource-constrained environments
- # - Complex TypeScript projects with heavy type inference
- ```
-
-5. **Per-language server configuration:**
+5. **Tune timeouts for large repositories:**
 
  ```json
  {
- "servers": {
- "typescript": {
- "timeout": {
- "initialization": 90000,
- "request": 30000
- },
- "maxNumberOfProblems": 100
- },
- "rust": {
- "timeout": {
- "initialization": 120000,
- "request": 45000
- }
- }
- }
+   "lspServers": {
+     "typescript": {
+       "command": "typescript-language-server",
+       "args": ["--stdio"],
+       "fileExtensions": { ".ts": "typescript", ".tsx": "typescriptreact" },
+       "requestTimeoutMs": 120000,
+       "initializationTimeoutMs": 90000,
+       "warmupTimeoutMs": 60000
+     }
+   }
  }
  ```
 
-6. **Verify LSP configuration:**
+ Raise these when you see language server startup or request timeouts on:
+ - Large monorepos with thousands of files
+ - Slow file systems (network drives, container volumes)
+ - Resource-constrained environments
+ - Complex TypeScript projects with heavy type inference
 
- ```bash
- # Check if config is valid JSON
- cat ~/.copilot/lsp.json | jq .
-
- # Start Copilot and check for LSP initialization
- copilot
- # Watch for language server startup messages in debug mode
- ```
-
-7. **Debug LSP issues:**
-
- ```bash
- # Enable debug logging
- export COPILOT_DEBUG=1
- copilot
-
- # Look for LSP-related messages:
- # "Initializing TypeScript language server..."
- # "LSP initialization complete in 23457ms"
- # "LSP request: textDocument/definition"
- ```
-
-8. **Disable LSP for specific languages:**
+6. **Disable a server without removing it:**
 
  ```json
  {
- "servers": {
- "javascript": {
- "enabled": false
+   "lspServers": {
+     "python": {
+       "command": "pyright-langserver",
+       "args": ["--stdio"],
+       "fileExtensions": { ".py": "python" },
+       "disabled": true
+     }
+   }
  }
- }
- }
+ ```
+
+7. **Manage servers from a session:**
+
+ | Subcommand | Description |
+ | --- | --- |
+ | `/lsp show` | Display configured language servers and their configuration |
+ | `/lsp logs` | Open the live LSP services panel (status + server logs) |
+ | `/lsp test <name>` | Test whether a language server starts correctly |
+ | `/lsp reload` | Reload LSP configurations from disk |
+
+ ```bash
+ # Validate the file is well-formed JSON
+ cat ~/.copilot/lsp-config.json | jq .
+
+ copilot
+ ```
+
+ ```
+ /lsp show
+ /lsp test typescript
+ ```
+
+ `/lsp show` prints the resolved user config path along with each configured server and its file extensions.
+
+8. **Troubleshoot startup problems:**
+
+ ```bash
+ # Capture detailed logs while the servers start
+ copilot --log-level all --log-dir ./lsp-logs
+
+ # Then inspect the log directory
+ ls ./lsp-logs/
  ```
 
 **Expected Outcome:**
-Language server timeouts are configured for your environment, eliminating timeout errors in large projects.
+Language servers are configured and verified with `/lsp test`, and you can tune per-server timeouts for large projects.
 
 ### Exercise 8: Configuration File Deep Dive
 
-**Goal:** Understand and customize config.json and related configuration files.
+**Goal:** Understand and customize `settings.json` and the related configuration files.
+
+> [!WARNING]
+> `~/.copilot/config.json` is managed automatically by the CLI and holds your authentication token and trusted-folder state. Never print, copy, or share it — especially while screen sharing. Your own preferences belong in `~/.copilot/settings.json`.
 
 **Steps:**
 
-1. View current configuration:
+1. View your current user settings:
 
  ```bash
- cat ~/.copilot/config.json
+ cat ~/.copilot/settings.json | jq .
  ```
 
-2. Example full configuration:
+2. Example settings file:
 
  ```json
  {
- "trustedFolders": [
- "/home/user/projects",
- "/home/user/work"
- ],
  "model": "auto",
- "theme": "dark",
- "autoUpdate": true
- }
- ```
-
-3. Add trusted folders:
-
- ```bash
- # Using jq to update config
- jq '.trustedFolders += ["/new/path"]' ~/.copilot/config.json > tmp.json
- mv tmp.json ~/.copilot/config.json
- ```
-
-4. Configure URL restrictions:
-
- ```json
- {
+ "theme": "github",
+ "autoUpdate": true,
  "allowedUrls": [
  "https://api.github.com/*",
  "https://docs.github.com/*"
@@ -848,8 +891,29 @@ Language server timeouts are configured for your environment, eliminating timeou
  }
  ```
 
+3. Change a setting from inside a session instead of editing the file by hand:
+
+ ```bash
+ copilot
+ ```
+
+ ```
+ /settings theme dim
+ /settings show theme
+ ```
+
+ `/settings` writes to `settings.json`. Run `/settings` with no arguments to open the settings dialog, and `/settings unset <key>` to remove a key.
+
+4. Grant a folder read/execute permission:
+
+ Trusted folders are recorded in the machine-managed `config.json` when you approve a folder at startup. Approve the prompt when Copilot CLI asks about a new directory, or widen access for a session with `--add-dir`:
+
+ ```bash
+ copilot --add-dir /new/path
+ ```
+
 **Expected Outcome:**
-Custom configuration for your workflow, including LSP settings from Exercise 7.
+Custom user settings for your workflow in `settings.json`, plus the LSP configuration from Exercise 7 — with credentials left untouched.
 
 ### Exercise 9: Troubleshooting Guide
 
@@ -861,10 +925,15 @@ Custom configuration for your workflow, including LSP settings from Exercise 7.
 
  ```bash
  # Clear credentials and re-authenticate
- rm -rf ~/.copilot/auth*
  copilot
- # Follow OAuth flow
  ```
+
+ ```
+ /logout
+ /login
+ ```
+
+ Credentials are held in your system credential store, or in the machine-managed `~/.copilot/config.json` when no credential store is available. Use `/logout` rather than deleting files.
 
 2. **Tool not working:**
 
@@ -874,17 +943,30 @@ Custom configuration for your workflow, including LSP settings from Exercise 7.
 
  # Verify MCP servers
  copilot
+ ```
+
+ ```
  /mcp
  ```
 
 3. **Session issues:**
 
  ```bash
- # Clear session data
- rm -rf ~/.copilot/sessions/
+ # Inspect session data
+ ls ~/.copilot/session-state/
 
- # Start fresh
+ # Prune from inside a session instead of deleting files
  copilot
+ ```
+
+ ```
+ /session prune
+ /session delete-all
+ ```
+
+ Or start fresh in the current session:
+
+ ```
  /clear
  ```
 
@@ -893,12 +975,16 @@ Custom configuration for your workflow, including LSP settings from Exercise 7.
  ```bash
  # Check context usage
  copilot
+ ```
+
+ ```
  /context
+ ```
 
- # Compact if needed
+ Compact if needed, or start fresh:
+
+ ```
  /compact
-
- # Or start fresh
  /clear
  ```
 
@@ -930,6 +1016,9 @@ Custom configuration for your workflow, including LSP settings from Exercise 7.
 
  ```bash
  copilot
+ ```
+
+ ```
  /diagnose
  ```
 
@@ -946,20 +1035,20 @@ You can diagnose and resolve common problems using `/diagnose`, LSP timeout tuni
 
 1. **Standardize repository configuration:**
 
- ```bash
+ ```text
  # Create a template repository with:
  .github/
- ├── copilot-instructions.md # Team coding standards
+ ├── copilot-instructions.md          # Team coding standards
  ├── agents/
- │ ├── reviewer.md # Code review agent
- │ └── docs.md # Documentation agent
+ │   ├── reviewer.agent.md            # Code review agent
+ │   └── docs.agent.md                # Documentation agent
  ├── instructions/
- │ ├── typescript.instructions.md
- │ └── tests.instructions.md
+ │   ├── typescript.instructions.md
+ │   └── tests.instructions.md
  └── hooks/
- └── hooks.json # Security guardrails
+     └── hooks.json                   # Security guardrails
 
- AGENTS.md # Project-specific agent
+ AGENTS.md                            # Project-specific agent
  ```
 
 2. **Create onboarding documentation:**
@@ -1077,10 +1166,13 @@ Team-wide standardization on Copilot usage, including shared LSP and environment
  ```bash
  # Faster than sequential processing
  copilot
- /fleet "Update all 50 components to the API format"
-
- # Multiple agents work in parallel
  ```
+
+ ```
+ /fleet "Update all 50 components to the API format"
+ ```
+
+ Multiple agents work in parallel.
 
 7. **Parallel sessions for independent tasks:**
 
@@ -1110,6 +1202,9 @@ Maximum performance from Copilot CLI using parallelization, autopilot, and fleet
 
  ```bash
  copilot
+ ```
+
+ ```
  /research "Compare the trade-offs of REST vs GraphQL for mobile backends"
  ```
 
@@ -1121,7 +1216,7 @@ Maximum performance from Copilot CLI using parallelization, autopilot, and fleet
 
 2. **Export research output:**
 
- ```bash
+ ```
  # After /research completes, export the report
  /share ./research-report.md
  ```
@@ -1130,10 +1225,13 @@ Maximum performance from Copilot CLI using parallelization, autopilot, and fleet
 
  ```bash
  copilot --allow-tool 'web_fetch' --deny-tool 'write'
- /research "What are current best practices for Node.js error handling?"
-
- # Read-only research — Copilot can fetch web content but won't modify files
  ```
+
+ ```
+ /research "What are current best practices for Node.js error handling?"
+ ```
+
+ Read-only research — Copilot can fetch web content but won't modify files.
 
 4. **Session insights with `/chronicle`:**
 
@@ -1143,21 +1241,32 @@ Maximum performance from Copilot CLI using parallelization, autopilot, and fleet
 
  ```bash
  copilot
+ ```
 
- # Generate a standup summary from recent sessions
+ ```
+ # Generate a standup report from your recent work
  /chronicle standup
+
+ # Search all session content by keyword or topic
+ /chronicle search
 
  # Get tips based on your usage patterns
  /chronicle tips
 
- # Get suggestions to improve your workflow
+ # Get suggestions for reducing token usage and cost
+ /chronicle cost-tips
+
+ # Get suggestions for improving copilot-instructions.md
  /chronicle improve
  ```
 
  `/chronicle` subcommands:
- - **`standup`** — Summarizes what you accomplished across recent sessions (useful for daily standups)
- - **`tips`** — Suggests Copilot features you may not be using effectively
- - **`improve`** — Analyzes patterns and recommends workflow improvements
+ - **`standup`** — Report on your work from the last day
+ - **`search`** — Search all session content by keyword or topic
+ - **`tips`** — Personalized tips based on your usage patterns
+ - **`cost-tips`** — Personalized tips to reduce token usage and cost
+ - **`improve`** — Suggest improvements to `copilot-instructions.md`
+ - **`reindex`** — Reload data into the session store index
 
 **Expected Outcome:**
 You can run deep-research workflows and extract insights from your session history.
@@ -1170,9 +1279,11 @@ You can run deep-research workflows and extract insights from your session histo
 
 | File | Purpose |
 | ------ | --------- |
-| `~/.copilot/config.json` | User settings |
+| `~/.copilot/settings.json` | User settings |
+| `~/.copilot/config.json` | Managed state and credentials (do not edit) |
 | `~/.copilot/mcp-config.json` | MCP servers |
-| `~/.copilot/lsp.json` | LSP timeout configuration |
+| `~/.copilot/lsp-config.json` | Language server definitions |
+| `.github/lsp.json` | Project language server definitions |
 | `~/.copilot/skills/` | Personal skills |
 | `~/.agents/skills/` | Personal skill discovery (shared with VS Code) |
 | `.github/copilot-instructions.md` | Repository instructions |
@@ -1189,7 +1300,7 @@ You can run deep-research workflows and extract insights from your session histo
 | `--yolo` / `--allow-all` | Allow all tools, paths, and URLs |
 | `--allow-tool` / `--deny-tool` | Allow/deny specific tools |
 | `--allow-url` / `--deny-url` | Allow/deny specific URLs |
-| `--silent` | Suppress output |
+| `--silent` | Output only agent response (no stats) |
 | `--output-format` | Output as `text` or `json` (JSONL) |
 | `--share PATH` | Export to markdown |
 | `--share-gist` | Export to Gist |
@@ -1209,7 +1320,8 @@ You can run deep-research workflows and extract insights from your session histo
 | `--stream` | Enable/disable streaming (on/off) |
 | `--bash-env` | Source BASH_ENV in shell sessions |
 | `--experimental` | Enable experimental features |
-| `--mouse` / `--no-mouse` | Mouse behavior |
+| `--mouse [on\|off]` | Enable or disable mouse support in alt screen mode |
+| `--no-mouse` | Disable mouse support in alt screen mode |
 | `--effort` | Shorthand for `--reasoning-effort` |
 | `--secret-env-vars` | Redact env var values |
 | `--no-custom-instructions` | Disable AGENTS.md loading |
@@ -1234,14 +1346,16 @@ You can run deep-research workflows and extract insights from your session histo
 | `/after` | Schedule a one-shot prompt or skill |
 | `/every` | Schedule a recurring prompt or skill |
 | `/limits` | View or edit session limits |
+| `/lsp` | Manage language server configuration |
+| `/sandbox` | Show or configure command sandboxing (experimental) |
+| `/settings` | Open the settings UI, or show, set, and unset individual settings |
 | `/statusline` | Configure status line items |
 | `/subagents` | Configure default and per-agent subagent models |
 | `Shift+Tab` | Cycle through chat / plan / autopilot modes |
 | `/research` | Launch deep-research workflow with exportable reports |
-| `/chronicle` | Session-history insights (standup, tips, improve) — experimental |
+| `/chronicle` | Session-history insights (standup, search, tips, cost-tips, improve, reindex) — experimental |
 | `/diagnose` | Show diagnostic summary of session and environment |
-| `/undo` | Undo the last turn when possible |
-| `/rewind` | Timeline picker to roll back to any point (also double-Esc) |
+| `/rewind` (alias `/undo`) | Rewind the last turn and revert file changes; also via double-Esc |
 | `/copy` | Copy last response to clipboard |
 | `/ide` | Connect to IDE workspace |
 | `/mcp` | Manage MCP servers |
@@ -1288,11 +1402,11 @@ alias cop-resume='copilot --resume'
 - ✅ **Configurable status line** displays dynamic session info via custom shell scripts
 - ✅ **Environment loading indicator** shows skills, MCPs, and plugins being loaded at startup
 - ✅ **Status line responsive layout** auto-switches to two-line layout on narrow terminals
-- ✅ **Expanded `--help` output** with descriptions, examples, and sorted flags
+- ✅ **`--help` output** includes descriptions, examples, and sorted flags
 - ✅ **`/research` command** for deep-research workflows with exportable reports
 - ✅ **Parallel tool execution** is always enabled
-- ✅ **`/chronicle` command** (experimental) for session-history insights: standup, tips, improve
-- ✅ **`--mouse`/`--no-mouse` flag** controls mouse behavior
+- ✅ **`/chronicle` command** (experimental) for session-history insights: standup, search, tips, cost-tips, improve, reindex
+- ✅ **`--mouse [on|off]` and `--no-mouse` flags** control mouse support in alt screen mode
 - ✅ **`--effort` flag** shorthand for `--reasoning-effort`
 - ✅ **Monorepo support** discovers instructions, MCPs, skills, and agents from cwd to git root
 - ✅ **`/diagnose` command** for troubleshooting session and environment issues
@@ -1305,10 +1419,13 @@ alias cop-resume='copilot --resume'
 - ✅ **Remote control sessions** via `--remote` or `/remote`
 - ✅ **ACP clients** can provide MCP servers when starting/loading sessions
 - ✅ **`copilot help monitoring`** documents OpenTelemetry configuration
-- ✅ **OpenTelemetry enhancements** — sub-agent INTERNAL spans, `time_to_first_chunk` metric
-- ✅ **LSP configuration** controls language server timeouts; default request timeout is 90s
+- ✅ **`copilot help <topic>`** covers billing, commands, config, environment, limits, logging, monitoring, permissions, providers, and sandbox
+- ✅ **OpenTelemetry monitoring** — sub-agent INTERNAL spans, `time_to_first_chunk` metric
+- ✅ **Session limits** are opt-in via `--max-ai-credits` and `/limits` (soft cap, minimum 30 AI credits)
+- ✅ **LSP configuration** defines language servers explicitly in `~/.copilot/lsp-config.json` or `.github/lsp.json`; none run by default
 - ✅ **Shell mode access** via `!` command
-- ✅ config.json and lsp.json persist preferences
+- ✅ `settings.json` holds user preferences; `lsp-config.json` defines language servers
+- ✅ `config.json` is machine-managed and holds credentials — never print or share it
 - ✅ Team standardization ensures consistency
 - ✅ Performance optimization maximizes productivity
 

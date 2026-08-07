@@ -163,6 +163,23 @@ Use shell commands or the interactive `/mcp` view:
 
 ---
 
+## `/mcp` Subcommands
+
+The interactive view also takes subcommands:
+
+| Command | Action |
+|---------|--------|
+| `/mcp list` | List attached servers and status |
+| `/mcp show <name>` | Server details and available tools |
+| `/mcp add` / `/mcp edit <name>` | Interactive add/edit wizard |
+| `/mcp enable` / `/mcp disable <name>` | Toggle a server (persists) |
+| `/mcp delete <name>` | Delete a server |
+| `/mcp reload` | Reload config and restart servers |
+| `/mcp auth <name>` | Authenticate with a remote server |
+| `/mcp search [query]` | Search the MCP registry |
+
+---
+
 ## GitHub MCP Server Controls
 
 ```bash

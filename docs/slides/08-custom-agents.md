@@ -68,7 +68,7 @@ style: |
 - 🚫 Clear boundaries
 - 📚 Domain knowledge
 
-Live in **`.github/agents/name.agent.md`** or **`~/.config/copilot/agents/`**
+Live in **`.github/agents/name.agent.md`**, **`.claude/agents/`**, or **`~/.copilot/agents/`**
 
 Create with **`/agent`** slash command or manually
 
@@ -85,6 +85,8 @@ tools: # optional (default = all)
  - shell
  - read
  - write
+skills: # optional: eagerly load named skills
+ - test-writer
 ---
 
 # Test Writing Agent
@@ -97,6 +99,37 @@ You are a senior QA engineer...
 ```
 
 File: `.github/agents/test-agent.agent.md`
+
+---
+
+## The `skills:` Field
+
+Without `skills:`, skills load **on-demand** based on prompt matching.
+
+```yaml
+skills:
+ - api-docs
+ - test-writer
+```
+
+`skills:` declares which skills are **eagerly loaded** when the agent is
+invoked — the agent always has that skill content available.
+
+> The `model` field accepts display names and vendor suffixes in addition to
+> full model identifiers. Copilot resolves the closest matching model.
+
+---
+
+## ⚠️ Restart to Load New Agents
+
+| How the agent got there | Availability |
+|-------------------------|--------------|
+| Manually created `.agent.md` file | **Requires a CLI restart** |
+| Edited an existing `.agent.md` file | **Requires a CLI restart** |
+| Installed via `/plugin install` | **Hot-loaded** — available immediately |
+
+If a new agent doesn't show up in `/agent`, it almost certainly means
+the CLI hasn't been restarted yet — not that the file is wrong.
 
 ---
 
@@ -113,30 +146,33 @@ File: `.github/agents/test-agent.agent.md`
 
 ## Built-in Agents
 
-Invoked automatically — not listed in `/agent` menu
+Not listed in the `/agent` menu
 
-| Agent | What it does | Trigger |
+| Agent | What it does | How it runs |
 |-------|-------------|---------|
-| **Explore** | Fast codebase Q&A; uses GitHub MCP tools | Codebase analysis prompts |
-| **Task** | Run commands smartly | Command execution prompts |
-| **Plan** | Implementation planning | Planning prompts |
-| **Code-review** | High-signal reviews | Review prompts |
+| **Explore** | Fast codebase Q&A; read-only GitHub MCP tools | Automatic |
+| **Task** | Run tests, builds, linters | Automatic |
+| **General-purpose** | Main-agent capabilities in a separate context | Automatic |
+| **Code-review** | High-signal diff reviews | Automatic / `/review` |
+| **Rubber-duck** | Critique on a complementary model | Automatic / `/rubber-duck` |
+| **Security-review** | 11 vulnerability categories | `/security-review` |
 | **Research** | Deep investigations | `/research` |
-| **Fleet** | Parallel subagent orchestration | `/fleet` |
-| **Rubber-duck** | Critique plans and implementations | Feedback prompts |
+| **REM** | Memory consolidation | Background |
+
+**Plan** and **fleet** are session *modes*, not agents
 
 ---
 
 ## Agent Hierarchy
 
 ```
-User agents (~/.config/copilot/agents/) ← highest priority
+User agents (~/.copilot/agents/) ← highest priority
  ↓
 Enterprise agents (.github-private repo)
  ↓
 Organization agents (.github-private repo)
  ↓
-Repository agents (.github/agents/)
+Repository agents (.github/agents/ or .claude/agents/)
  ↓
 AGENTS.md (root or subdirectory)
 ```
@@ -146,17 +182,21 @@ Agents can **delegate to other agents** for complex workflows
 
 ---
 
-## configure-copilot Sub-Agent
+## Configure from Inside a Session
 
-Built-in agent that manages configuration for you:
+Manage everything without leaving the CLI:
 
-```
-Help me set up an MCP server for PostgreSQL
-```
+| Command | Manages |
+|---------|---------|
+| `/agent` | Custom agents |
+| `/mcp` | MCP servers |
+| `/skills` | Skills |
+| `/plugin` | Plugins and marketplaces |
+| `/subagents` | Per-agent model, effort, context tier |
+| `/settings` | User settings (`--repo` / `--local` for repo scope) |
 
-- Manages **MCP servers**, **custom agents**, and **skills**
-- Modifies config files on your behalf
-- Human-readable sub-agent IDs (e.g., `math-helper-0`)
+> User settings live in `~/.copilot/settings.json`.
+> `~/.copilot/config.json` is managed automatically and holds credentials — never print it.
 
 ---
 
@@ -174,4 +214,4 @@ Open **Module 8** in `docs/workshop/08-custom-agents.md`
 - **Exercise 6** — Subagents & delegation
 - **Exercise 7** — Debugging agent config
 
-⏱️ You have **~8 minutes**
+⏱️ You have **~16 minutes**

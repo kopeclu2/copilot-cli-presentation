@@ -41,7 +41,7 @@ MCP server errors surface directly in session output and in MCP server details, 
 - A tool invocation fails
 - Configuration is invalid
 
-Use `/mcp` inside a session or `copilot mcp list` / `copilot mcp get <name>` from your shell to inspect configured servers and their status.
+Use `/mcp` inside a session or `copilot mcp list` / `copilot mcp get <name>` from your shell to inspect configured servers and their status. `/mcp reload` restarts servers after you change configuration, and `/mcp auth <name>` re-runs authentication for a remote server.
 
 ### Server Types
 
@@ -417,6 +417,15 @@ MCP server provides structured file access with defined boundaries. Any startup 
  /mcp
  ```
 
+8. **Drive the same view with subcommands:**
+ ```
+ /mcp list
+ /mcp show memory
+ /mcp disable memory
+ /mcp enable memory
+ /mcp reload
+ ```
+
 **Expected Outcome:**
 You can manage MCP servers without editing config files and inspect them interactively.
 
@@ -572,9 +581,21 @@ MCP server names (the keys in `"mcpServers"`) support dots (`.`), slashes (`/`),
 
 ### Slash Commands
 
+`/mcp` accepts subcommands as well as opening the interactive view:
+
 | Command | Description |
 |---------|-------------|
-| `/mcp` | Open the interactive MCP server view |
+| `/mcp` (or `/mcp show`) | Open the MCP server configuration and status interface |
+| `/mcp list` (or `/mcp ls`) | List attached MCP servers and their status |
+| `/mcp show <server-name>` | Show server details and available tools |
+| `/mcp add [server-name]` | Add a new MCP server (interactive wizard) |
+| `/mcp edit <server-name>` | Edit an existing MCP server (interactive wizard) |
+| `/mcp delete <server-name>` | Delete an MCP server |
+| `/mcp enable <server-name>` | Enable a previously disabled server (persists across sessions) |
+| `/mcp disable <server-name>` | Disable a server (persists across sessions) |
+| `/mcp reload` | Reload MCP configuration and restart servers |
+| `/mcp auth <server-name>` | Authenticate with a remote MCP server |
+| `/mcp search [query]` | Search MCP servers from the registry |
 
 ### Shell Commands
 
@@ -604,6 +625,7 @@ MCP server names (the keys in `"mcpServers"`) support dots (`.`), slashes (`/`),
 - ✅ `--additional-mcp-config` loads temporary servers
 - ✅ MCP config loads from user, workspace, plugin, and built-in sources
 - ✅ `copilot mcp` CLI command for managing servers from the command line
+- ✅ `/mcp` takes subcommands: `list`, `show`, `add`, `edit`, `enable`, `disable`, `delete`, `reload`, `auth`, `search`
 - ✅ Remote server auto-retry on transient network failures
 - ✅ MCP OAuth HTTPS redirect URI via self-signed cert fallback
 
