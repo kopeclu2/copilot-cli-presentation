@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Completed Modules 1-8
+- Completed Modules 1-7
 - Understanding of AGENTS.md (Module 3)
 - A repository to experiment with
 
@@ -106,6 +106,8 @@ Copilot CLI includes specialized built-in agents:
 | **REM** | Background memory consolidation that updates the dynamic context board | Background only |
 
 > **Note:** Built-in agents are not included in the `/agent` list. They are invoked via the main agent's task tool. Research, Security-review, and REM are not selected automatically — Research and Security-review run from their slash commands, and REM runs in the background.
+
+> **Note:** Built-in agents are designed for an interactive session, and not every built-in name is addressable with the `--agent` flag. Names such as `explore`, `task`, `code-review`, `rubber-duck`, `security-review`, and `research` resolve, while others do not — and even a name that resolves may not run in programmatic mode (`-p`). Reach for built-ins through the main agent, their slash commands, or `/agent` rather than through `--agent`, and use `--agent` for your own custom agents.
 
 ### Sub-Agent Depth and Concurrency Limits
 
@@ -785,7 +787,7 @@ skills: # Optional: eagerly load named skills
 
 ## References
 
-- [About Custom Agents - GitHub Docs](https://docs.github.com/en/copilot/concepts/agents/coding-agent/about-custom-agents)
+- [About Custom Agents - GitHub Docs](https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-custom-agents)
 - [Create Custom Agents for CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/create-custom-agents-for-cli)
 - [Custom Agents Configuration - GitHub Docs](https://docs.github.com/en/copilot/reference/custom-agents-configuration)
 - [Comparing CLI Customization Features - GitHub Docs](https://docs.github.com/en/copilot/concepts/agents/copilot-cli/comparing-cli-features)

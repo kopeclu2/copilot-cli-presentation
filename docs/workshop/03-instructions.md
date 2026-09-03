@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Completed Modules 1-3
+- Completed Modules 1-2
 - Understanding of Markdown format
 - A Git repository to experiment with
 
@@ -271,17 +271,6 @@ Copilot acts as a senior TypeScript engineer and suggests conventional commits.
    applyTo: "**/*.ts,**/*.tsx"
    ---
 
-   > [!TIP]
-   > `applyTo` accepts both a comma-separated string and a YAML array:
-   > ```yaml
-   > # String (original format)
-   > applyTo: "**/*.ts,**/*.tsx"
-   > # Array
-   > applyTo:
-   >   - "**/*.ts"
-   >   - "**/*.tsx"
-   > ```
-
    # TypeScript Instructions
 
    - Use strict TypeScript (`"strict": true` in tsconfig)
@@ -292,6 +281,17 @@ Copilot acts as a senior TypeScript engineer and suggests conventional commits.
    - Use barrel exports (index.ts) for public APIs
    EOF
    ```
+
+   > [!TIP]
+   > `applyTo` accepts both a comma-separated string and a YAML array:
+   > ```yaml
+   > # String form
+   > applyTo: "**/*.ts,**/*.tsx"
+   > # Array form
+   > applyTo:
+   >   - "**/*.ts"
+   >   - "**/*.tsx"
+   > ```
 
 3. Create test-specific instructions:
    ```bash
@@ -502,7 +502,7 @@ Commit messages follow Conventional Commits format.
 
 ## References
 
-- [Custom Instructions - GitHub Docs](https://docs.github.com/en/copilot/customizing-copilot/adding-custom-instructions-for-github-copilot)
+- [Custom Instructions - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions)
 - [How to Write Great AGENTS.md](https://github.blog/ai-and-ml/github-copilot/how-to-write-a-great-agents-md-lessons-from-over-2500-repositories/)
 - [llms.txt Specification](https://github.com/AnswerDotAI/llms-txt)
 - [Conventional Commits](https://www.conventionalcommits.org/)

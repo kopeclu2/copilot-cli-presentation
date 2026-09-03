@@ -148,15 +148,17 @@ copilot plugins list --kind mcp --kind skill
 copilot plugins list --scope user --json
 
 copilot plugins install --skill --scope project ./my-skill/SKILL.md
-copilot plugins enable github --mcp
+copilot plugins enable github-mcp-server --mcp
 copilot plugins disable my-skill --skill
 copilot plugins remove spark@copilot-plugins
 ```
 
 Kinds: `plugin`, `mcp`, `skill`, `instruction`, `lsp`
-Scopes: `user`, `repository`, `organization`, `plugin`, `builtin`, `unknown`
+Scopes: `user`, `session`, `repository`, `working-directory`,
+`organization`, `plugin`, `builtin`, `unknown`
 
-> `/plugins` opens the same view as an interactive dashboard
+> `/plugin` opens the same view as an interactive dashboard
+> A `[plugin-dir]` warning about a bundled plugin directory with no `plugin.json` or `SKILL.md` may print first — benign, the listing that follows is complete
 
 ---
 

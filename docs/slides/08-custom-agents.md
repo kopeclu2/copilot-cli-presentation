@@ -161,6 +161,8 @@ Not listed in the `/agent` menu
 
 **Plan** and **fleet** are session *modes*, not agents
 
+> Built-ins are meant for interactive use — not every name works with `--agent`
+
 ---
 
 ## Agent Hierarchy

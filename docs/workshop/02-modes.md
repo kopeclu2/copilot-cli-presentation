@@ -109,6 +109,9 @@ Slash commands are prefixed with `/` and provide quick access to CLI features wi
 | **IDE** | `/ide` | Connect to IDE workspace |
 | **System** | `/help`, `/changelog`, `/exit`, `/init`, `/tasks`, `/lsp`, `/update`, `/restart`, `/version`, `/voice`, `/chronicle`, `/search`, `/keep-alive`, `/limits`, `/diagnose`, `/app` | General utilities and productivity |
 
+> [!NOTE]
+> `copilot help commands` does not list every command. The scheduling commands `/after` and `/every` are absent from that listing even though they work in a session, so treat `/help` inside the CLI as the authoritative list.
+
 #### Keyboard Shortcuts
 
 In addition to slash commands, Copilot CLI supports keyboard shortcuts:
@@ -298,6 +301,9 @@ You can also start a session directly with the same agent:
 copilot --agent rubber-duck
 ```
 
+> [!NOTE]
+> Built-in agents such as `rubber-duck` are designed for interactive sessions. Pairing `--agent` with a non-interactive `-p` run fails outright rather than degrading, so start an interactive session when you want this behavior. Custom agents you define in the repository do work with `-p`.
+
 The rubber-duck agent looks for bugs, logic errors, and design flaws without turning the session into a broad style review.
 
 #### Security Review Mode
@@ -316,7 +322,7 @@ The security review focuses on high-confidence security findings rather than gen
 
 > **Remote control** lets you observe and control sessions remotely. Use the `--remote` flag or `/remote` command to start a remote control session, allowing another Copilot CLI instance to connect.
 
-> **Tip:** Run `copilot help commands` from your shell to see the full interactive command list without starting a session.
+> **Tip:** Run `copilot help commands` from your shell to see the full interactive command list without starting a session. A few commands are not included in that listing — the scheduling commands `/after` and `/every` are the notable ones, so use `/help` inside a session to confirm what is available.
 
 ## Hands-On Exercises
 
@@ -562,8 +568,11 @@ You understand the difference between one-time and session-wide tool approval.
 
 4. Combine multiple tool permissions:
  ```bash
- copilot -p "Run git status and explain what it means" --allow-tool 'shell(git)'
+ copilot -p "Run git status and explain what it means" --allow-tool 'shell(git status)'
  ```
+
+ > [!NOTE]
+ > Shell approval matches on the first-level subcommand, so `shell(git status)` allows exactly `git status`. Use `shell(git:*)` when you want to allow every `git` subcommand.
 
 5. Pipe file content as context:
  ```bash
@@ -655,13 +664,17 @@ A draft PR is created and the cloud agent begins working asynchronously.
 
 **Steps:**
 
-1. **Interactive exploration** - Start a session and explore:
+1. **Interactive exploration** - Start a session:
  ```bash
  copilot
- > Explain the structure of this codebase
- > What does the main function do?
- > How would I add a new feature?
- > /exit
+ ```
+
+ Then explore from inside the session:
+ ```
+ Explain the structure of this codebase
+ What does the main function do?
+ How would I add a new feature?
+ /exit
  ```
 
 2. **Programmatic for automation** - Single focused tasks:
@@ -670,7 +683,7 @@ A draft PR is created and the cloud agent begins working asynchronously.
  copilot -p "Run all tests and report failures" --allow-tool 'shell'
 
  # Good for git workflows
- copilot -p "Summarize changes since last tag" --allow-tool 'shell(git)'
+ copilot -p "Summarize changes since last tag" --allow-tool 'shell(git:*)'
  ```
 
 3. **Delegate for heavy lifting** - Long-running tasks:
@@ -736,8 +749,8 @@ You can choose the appropriate mode for any task.
 - ✅ `/env` shows loaded environment details
 - ✅ `--mode`, `--autopilot`, `--plan` flags start CLI in a specific mode
 - ✅ `/rubber-duck` starts a critique-focused feedback turn inside an interactive session
-- ✅ `--agent rubber-duck` starts a critique-focused feedback session
-- ✅ `/after` and `/every` schedule one-shot and recurring prompts
+- ✅ `--agent rubber-duck` starts a critique-focused interactive session
+- ✅ `/after` and `/every` schedule one-shot and recurring prompts, and are not listed by `copilot help commands`
 - ✅ `/rewind` (alias `/undo`, or double-Esc) rewinds the last turn and reverts file changes
 - ✅ `/permissions` switches between `manual`, `assisted`, and `allow-all` permission modes
 - ✅ `/fork` branches the current session into a new one
@@ -759,6 +772,6 @@ You can choose the appropriate mode for any task.
 
 ## References
 
-- [Copilot CLI - GitHub Docs](https://docs.github.com/copilot/how-tos/copilot-cli)
-- [Use Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-copilot-cli)
+- [Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli)
+- [Use Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/overview)
 - [Copilot Coding Agent](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent)

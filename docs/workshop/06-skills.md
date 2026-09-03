@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Completed Modules 1-6
+- Completed Modules 1-5
 - Understanding of Markdown and YAML frontmatter
 - A project to practice with
 
@@ -46,9 +46,10 @@ Level 3: Resources → Copilot accesses supporting files (as needed)
 > Copilot CLI ships with built-in skills that are always available without any configuration:
 >
 > - `customize-cloud-agent` — configuring the Copilot cloud agent environment, including `copilot-setup-steps.yml`, preinstalled tools and dependencies, runners, and settings
+> - `discover-resources` — finding a public MCP server or public skill you could add for an unavailable external capability, such as database access, accessible PDF reports, cloud costs, or architecture diagrams
 > - `github-pr-media` — uploading an image or video to GitHub's user attachments API and embedding it in a pull request description or comment
 >
-> Built-in skills are listed alongside project and personal skills in `copilot skill list` and in the `/skills` view. They cannot be deleted with `copilot skill remove`, but they can be disabled (`copilot plugins disable <name> --skill`, or `/plugins disable --skill <name>`), and a project or personal skill with the same name overrides the built-in.
+> Built-in skills are listed alongside project and personal skills in the `/skills` view. `copilot plugins list --kind skill` is the fuller inventory: `copilot skill list` shows `customize-cloud-agent` and `github-pr-media` but omits `discover-resources`, so check both when auditing what is available. Built-in skills cannot be deleted with `copilot skill remove`, but they can be disabled with `copilot plugins disable <name> --skill` from the shell, or from the `/plugin` dashboard inside a session, and a project or personal skill with the same name overrides the built-in.
 
 ### Managing Skills from the Shell
 
@@ -679,7 +680,7 @@ Only `name` and `description` are required. The shipped built-in skills use `use
 - ✅ Copilot auto-selects skills based on your request
 - ✅ `copilot skill add` installs skills from files, URLs, or directories
 - ✅ `copilot skill list --json` provides machine-readable skill inventory
-- ✅ Built-in skills `customize-cloud-agent` and `github-pr-media` ship with the CLI and need no configuration
+- ✅ Built-in skills `customize-cloud-agent`, `discover-resources`, and `github-pr-media` ship with the CLI and need no configuration
 - ✅ Frontmatter supports `user-invocable`, `aliases`, `allowed-tools`, and `disable-model-invocation` beyond `name`/`description`
 
 ## Next Steps
@@ -688,7 +689,7 @@ Only `name` and `description` are required. The shipped built-in skills use `use
 
 ## References
 
-- [Agent Skills - VS Code Docs](https://code.visualstudio.com/docs/copilot/customization/agent-skills)
+- [Agent Skills - VS Code Docs](https://code.visualstudio.com/docs/agent-customization/agent-skills)
 - [About Agent Skills - GitHub Docs](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills)
 - [Agent Skills Specification](https://agentskills.io/)
 - [Example Skills Repository](https://github.com/anthropics/skills)

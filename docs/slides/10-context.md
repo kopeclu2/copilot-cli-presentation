@@ -101,7 +101,7 @@ Available models and context windows depend on your subscription and selected mo
 | Command | Action | When to use |
 |---------|--------|-------------|
 | `/context` | Show token usage | Check regularly |
-| `/usage` | Session stats (requests, duration, lines edited) | Track consumption |
+| `/usage` | Session stats (AI credits, token breakdown, duration, lines edited) | Track consumption |
 | `/compact` | Compress history | Long sessions |
 | `/clear` | Abandon session and start fresh (session is discarded) | Abandoning session entirely |
 | `/new` | Start new conversation (old session stays backgrounded) | New topic, keep old session |

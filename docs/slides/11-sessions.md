@@ -79,7 +79,7 @@ copilot    prompts + tools    /exit or Ctrl+C
   │               │               │
   └───── Session persists ────────┘
                   │
-          copilot --resume    ← pick up later
+          copilot --continue   ← pick up later
 ```
 
 ---
@@ -93,10 +93,29 @@ copilot    prompts + tools    /exit or Ctrl+C
 | `/rename NAME` | Name your session for easy finding |
 | `/clear` | Abandon session and start fresh (session is discarded) |
 | `/new` | Start new conversation (old session stays backgrounded) |
-| `/resume` | Switch to a previous session |
-| `--continue` | Resume most recent session from CLI |
-| `/share` | Export to markdown or GitHub Gist |
+| `/resume` | Switch to a previous session (picker, or pass ID/name) |
+| `--continue` | Resume the most recent session from CLI |
+| `/share` | Export the session you're in (markdown, HTML, gist, or link) |
 | `/rewind` (alias `/undo`) | Rewind the last turn and revert file changes |
+| `/exit` | Exit the CLI; `/exit print` prints the session after exiting alt screen |
+
+---
+
+## Exporting a Session
+
+| Mechanism | Where it works |
+|-----------|----------------|
+| `/share` | Inside a conversation already in progress |
+| `--share [path]` | Non-interactive run only |
+| `--share-gist` | Non-interactive run only |
+
+```bash
+copilot -p "Explain this repo" --share ./out.md
+copilot -p "Explain this repo" --share-gist
+```
+
+> `--share` / `--share-gist` share **that run's own** session once it completes —
+> they cannot export a conversation from an earlier session
 
 ---
 

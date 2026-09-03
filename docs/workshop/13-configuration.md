@@ -42,7 +42,7 @@ Settings are layered. Later scopes override earlier ones, and organization-manag
 | Repository (personal, not committed) | `.github/copilot/settings.local.json` | `/settings --local <key> <value>` |
 | Organization-managed | Delivered by policy | Read-only; shown as `managed (read-only)` |
 
-Managed settings apply on top of your own; keys marked `managed (read-only)` cannot be edited from the CLI. `/model` also accepts `--repo` and `--local` to set a repository default model.
+Managed settings apply on top of your own; keys marked `managed (read-only)` cannot be edited from the CLI. `/model` also accepts `--repo` and `--local` to set a repository default model, `/config model` to set your user default, and `plan` / `--plan` to set the plan-mode model.
 
 ### Configuration Options Reference
 
@@ -89,9 +89,12 @@ All options below are set in `~/.copilot/settings.json`:
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `model` | string | (varies) | AI model to use; changeable via `/model` or `--model` |
+| `defaultMode` | string | `"interactive"` | Agent mode new interactive sessions start in: `"interactive"`, `"plan"`, or `"autopilot"`; `--mode`, `--autopilot`, and `--plan` still win when passed |
+| `defaultPermissionMode` | string | `"manual"` | Permission mode new interactive sessions start in: `"manual"`, `"assisted"`, or `"allow-all"`; pairs with `defaultMode: "autopilot"` to skip the autopilot permission confirmation entirely |
 | `theme` | string | `"github"` | Color theme: `"default"`, `"github"`, `"dim"`, `"high-contrast"`, or `"colorblind"` |
 | `mouse` | bool | `true` | Mouse support |
 | `banner` | string | `"once"` | Startup banner: `"always"`, `"never"`, or `"once"` |
+| `bannerStyle` | string | `"mona"` | Which artwork the startup banner uses: `"mona"` (two-Mona pixel-art hi-five) or `"classic"` (COPILOT wordmark with the goggled mascot); ignored when `banner` resolves to `"never"` |
 | `beep` | bool | `false` | Terminal beep when user attention is required |
 | `beepOnSchedule` | bool | `true` | Beep when a scheduled `/every` or `/after` run finishes (only when `beep` is enabled) |
 | `notifications` | bool | `false` | Show OS notifications when attention is required and when the agent finishes |
@@ -201,7 +204,7 @@ Command sandboxing is experimental: enable experimental features, then use `/san
 | `sandbox.addCurrentWorkingDirectory` | bool | Grant read/write access to the current working directory |
 | `sandbox.allowDevToolAccess` | bool | Auto-grant access to dev-tool caches, toolchains, and registry config |
 | `sandbox.allowBypass` | bool | Allow a per-command escape hatch out of the sandbox |
-| `sandbox.gitAuth` / `sandbox.ghAuth` | bool | Inject git and `gh` credentials into sandboxed commands |
+| `sandbox.auth.git` / `sandbox.auth.gh` | bool | Inject git and `gh` credentials into sandboxed commands so authenticated git/`gh` operations keep working inside the sandbox. Tokens are never injected while the sandbox is disabled. |
 | `sandbox.sandboxMcpServers` | bool | Spawn local (stdio) MCP servers inside the sandbox |
 | `sandbox.sandboxLspServers` | bool | Spawn language servers inside the sandbox |
 | `sandbox.userPolicy.filesystem.readwritePaths` | array | Extra paths granted read/write |
@@ -233,6 +236,7 @@ Command sandboxing is experimental: enable experimental features, then use `/san
 | `COPILOT_HOME` | Override config/state directory (default: ~/.copilot) | -- |
 | `COPILOT_MODEL` | Set default model (overridden by --model or /model) | -- |
 | `COPILOT_ALLOW_ALL` | Set "true" to allow all tools without confirmation | -- |
+| `COPILOT_ASSISTED_APPROVAL` | Review tool permission requests with the assisted-approval safety judge (same as `--assisted-approval`) | -- |
 | `COPILOT_AUTO_UPDATE` | Set "false" to disable auto-updates | -- |
 | `COPILOT_CUSTOM_INSTRUCTIONS_DIRS` | Comma-separated additional dirs for instruction files | -- |
 | `COPILOT_EDITOR` | Editor for interactive editing (plan, prompts) | Highest (over VISUAL, EDITOR) |
@@ -251,6 +255,8 @@ Command sandboxing is experimental: enable experimental features, then use `/san
 | `NO_COLOR` | Disable colored output (standard convention) | -- |
 | `COPILOT_DISABLE_TERMINAL_TITLE` | Disable updating the terminal tab/window title | -- |
 | `COPILOT_INLINE_IMAGE_LIMIT` | Override the `inlineImageLiveWindow` setting | -- |
+| `COPILOT_INLINE_IMAGES_HERDR` | Set "1" to opt in to inline images inside a herdr pane, once `inlineImages` is on | -- |
+| `COPILOT_MULTIPLEXER` | Override which terminal multiplexer the CLI believes it is running directly inside: "tmux", "herdr", or "none"; set it when detection guesses wrong | -- |
 | `COPILOT_SKILLS_DIRS` | Additional directories to search for skills | -- |
 | `COPILOT_PLUGIN_DIR_ONLY` | Load plugins only from directories passed with `--plugin-dir` | -- |
 | `COPILOT_HOOK_ALLOW_LOCALHOST` | Allow hooks to call localhost endpoints | -- |
@@ -325,6 +331,8 @@ Run `copilot help monitoring` for configuration examples.
 | `--allow-all-tools` | Allow all tools without confirmation |
 | `--allow-all-paths` | Disable file path verification |
 | `--allow-all-urls` | Allow all URLs without confirmation |
+| `--assisted-approval` | Review tool permission requests with the assisted-approval safety judge instead of approving them outright (equivalent to the `assisted` mode of `/permissions`); takes precedence over `--allow-all-tools` when the judge engages, and requires `--experimental` or `enabledFeatureFlags.AUTO_APPROVAL` |
+| `--sandbox` | Enable command sandboxing for the session at launch; not listed in `copilot --help` — see `copilot help sandbox` |
 | `--add-dir <directory>` | Add directory to allowed list (repeatable) |
 | `--disallow-temp-dir` | Prevent auto-access to system temp directory |
 | `--available-tools [tools...]` | Only these tools visible to model |
@@ -335,6 +343,7 @@ Run `copilot help monitoring` for configuration examples.
 | `--agent <agent>` | Use a specific custom agent |
 | `--additional-mcp-config <json-or-@file>` | Add MCP config as inline JSON or an `@`-prefixed file path (repeatable) |
 | `--max-ai-credits <credits>` | Set a session AI credit limit |
+| `--usage-output-file <file>` | Write final usage statistics as JSON to the specified file |
 | `--session-id <id>` | Resume a session/task by ID or set a UUID for a new session |
 | `--remote-export` | Export session to GitHub web/mobile read-only |
 | `--remote` | Enable remote control of your session from GitHub web and mobile |
@@ -349,13 +358,14 @@ Run `copilot help monitoring` for configuration examples.
 | `--disable-builtin-mcps` | Disable built-in MCP servers |
 | `--disable-mcp-server <name>` | Disable specific MCP server (repeatable) |
 | `--plugin-dir <directory>` | Load plugin from local dir (repeatable) |
+| `--extension-sdk-path <directory>` | Override the bundled `@github/copilot-sdk` injected into extension subprocesses with a local `copilot-sdk/` folder; invalid paths fall back to the bundled SDK |
 | `--secret-env-vars [vars...]` | Redact env var values from output |
 | `--no-custom-instructions` | Disable AGENTS.md loading |
 | `--output-format <format>` | Output as text or json (JSONL) |
 | `--stream <mode>` | Streaming: on or off |
 | `--acp` | Start as Agent Client Protocol server |
-| `--share [path]` | Export session to markdown file |
-| `--share-gist` | Export session to GitHub Gist |
+| `--share [path]` | Export session to markdown file after completion in non-interactive mode |
+| `--share-gist` | Export session to GitHub Gist after completion in non-interactive mode |
 | `--attachment <path>` | Attach a file (image or document) to prompt; non-interactive only (repeatable) |
 | `--log-dir <directory>` | Set log file directory |
 | `--log-level <level>` | Set log level |
@@ -365,6 +375,7 @@ Run `copilot help monitoring` for configuration examples.
 | `--mouse [on\|off]` | Enable or disable mouse support in alt screen mode |
 | `--no-mouse` | Disable mouse support in alt screen mode |
 | `--bash-env [on\|off]` | Toggle BASH_ENV support |
+| `--no-eager-powershell-resolution` | Disable background PowerShell prompt resolution on Windows (pairs with the `powershellFlags` setting) |
 | `--experimental` / `--no-experimental` | Toggle experimental features |
 | `--screen-reader` | Enable screen reader optimizations |
 | `--plain-diff` | Disable rich diff rendering |
@@ -383,6 +394,14 @@ This displays:
 - Available skills (project, personal, built-in)
 - Installed plugins
 - Current model and configuration directory
+
+### The `copilot app` Subcommand
+
+```bash
+copilot app
+```
+
+Opens the GitHub Copilot app in the current directory. The `/app` slash command does the same thing from inside a running session.
 
 ### The `copilot help monitoring` Topic
 
@@ -468,9 +487,12 @@ You can view, modify, and verify settings at user and repository scope, and you 
 
    ```bash
    export COPILOT_HOME=/tmp/copilot-test
-   copilot --version
+   copilot -p "Reply with OK"
    ls /tmp/copilot-test/
    ```
+
+   > [!NOTE]
+   > Start a session before listing the directory. `copilot --version` exits before the config directory is initialized, so the directory would not exist yet.
 
 2. Set the default model via environment:
 
@@ -712,14 +734,21 @@ You can enable detailed logging and understand the log directory structure.
    /footer
    ```
 
-5. Remove the limit when you are done:
+5. Capture the final usage numbers from a scripted run as JSON:
+
+   ```bash
+   copilot -p "Summarize the README" --allow-all-tools --usage-output-file ./usage.json
+   jq . ./usage.json
+   ```
+
+6. Remove the limit when you are done:
 
    ```
    /limits unset max-ai-credits
    ```
 
 **Expected Outcome:**
-You can set, inspect, and clear a session AI credit limit, and you understand it is a soft cap — usage is only known after a model response returns, so one call can exceed the limit before the next call is blocked.
+You can set, inspect, and clear a session AI credit limit, and export final usage statistics to a JSON file with `--usage-output-file`. You understand the limit is a soft cap — usage is only known after a model response returns, so one call can exceed the limit before the next call is blocked.
 
 ## Summary
 
@@ -756,7 +785,12 @@ You can set, inspect, and clear a session AI credit limit, and you understand it
 - ✅ `COPILOT_GH_HOST` overrides GitHub hostname for Copilot CLI only
 - ✅ `footer.show*` settings control individual status bar items
 - ✅ `sandbox.*` settings define the command sandboxing policy (experimental; see `copilot help sandbox`)
+- ✅ `--sandbox` turns sandboxing on at launch; `sandbox.auth.git` / `sandbox.auth.gh` control credential injection
+- ✅ `defaultMode` and `defaultPermissionMode` persist the mode and permission mode new interactive sessions start in
+- ✅ `--assisted-approval` routes permission requests through the assisted-approval safety judge
+- ✅ `copilot app` opens the GitHub Copilot app in the current directory; `/app` does the same from a session
 - ✅ Session limits are opt-in via `--max-ai-credits` and `/limits` (soft cap, minimum 30 AI credits)
+- ✅ `--usage-output-file` writes final usage statistics as JSON for scripted runs
 - ✅ OpenTelemetry is configured entirely through `COPILOT_OTEL_*` and `OTEL_*` environment variables
 - ✅ `copilot help config` and `copilot help environment` are the authoritative references
 
@@ -789,8 +823,8 @@ Congratulations on completing the GitHub Copilot CLI Workshop!
 
 ## References
 
-- [Copilot CLI - GitHub Docs](https://docs.github.com/copilot/how-tos/copilot-cli)
-- [Use Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-copilot-cli)
+- [Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli)
+- [Use Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/overview)
 - [GitHub Copilot Documentation](https://docs.github.com/en/copilot)
 - [Copilot CLI Blog Posts](https://github.blog/tag/copilot/)
 - [GitHub Community Discussions](https://github.com/orgs/community/discussions)

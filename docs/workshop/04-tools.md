@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Completed Modules 1-4
+- Completed Modules 1-3
 - Understanding of command-line security concepts
 - A test directory for safe experimentation
 
@@ -88,23 +88,39 @@ Deny rules always take precedence over allow rules.
 | Mode | Behavior |
 |---|---|
 | `manual` | Require approval for each request |
-| `assisted` | Approve requests an LLM safety check deems safe; prompt otherwise |
+| `assisted` | An LLM safety check auto-approves requests it judges safe and prompts otherwise. Requires the experimental auto-approval feature; ignored when that feature is off or when policy blocks auto-approval. |
 | `allow-all` | Auto-approve all tool, path, and URL requests |
 | `show` | Display the current mode without changing it |
 
 Running `/permissions` with no argument opens the interactive mode picker.
 
+You can request the same safety judge at launch with `--assisted-approval`, the launch-time counterpart to the `assisted` mode. It reviews tool permission requests instead of approving them outright, and it takes precedence over `--allow-all-tools` when the judge engages. Like the `assisted` mode, it requires the experimental auto-approval feature — enable it with `--experimental` or `enabledFeatureFlags.AUTO_APPROVAL`. The flag also reads the `COPILOT_ASSISTED_APPROVAL` environment variable:
+
+```bash
+copilot --experimental --assisted-approval -p "Tidy up the build scripts"
+```
+
 ### Command Sandboxing
 
 Command sandboxing is a third layer alongside tool permissions and path permissions. When it is enabled, shell commands run inside an OS-level sandbox with restricted filesystem and network access, so a command the agent runs cannot reach outside the policy you configured.
 
-Sandboxing is an experimental feature: the `/sandbox` command is only registered when experimental features are on. Turn them on with the `--experimental` flag or `/settings experimental on`.
+Sandboxing is an experimental feature: the `/sandbox` command (and its `enable`/`disable` subcommands) is only registered when experimental features are on, **or when a managed policy forces sandboxing on**; otherwise it returns "Unknown command". Turn experimental features on with the `--experimental` flag or `/settings experimental on`.
 
 ```text
 /sandbox            # Show status; in interactive mode, opens the policy dialog
 /sandbox enable     # Turn command sandboxing on
 /sandbox disable    # Turn command sandboxing off
 ```
+
+You can also start a session with sandboxing already on by passing `--sandbox` at launch, instead of enabling it from inside the session:
+
+```bash
+copilot --experimental --sandbox -p "Run the test suite and summarize failures"
+```
+
+Because sandboxing is experimental, `--sandbox` needs `--experimental` alongside it (or experimental features already enabled in settings). Without that, Copilot prints a warning and ignores the flag for the session.
+
+Sandboxing can therefore already be active at session start from `--sandbox`, a saved `sandbox.enabled` setting, or an organization policy. If the host cannot run the sandbox backend in that situation, Copilot prints a startup warning and sandboxed commands fail.
 
 Sandboxing is powered by Microsoft Execution Containers (MXC), which maps the policy onto each platform's isolation primitives: Seatbelt (`sandbox-exec`) on macOS, bubblewrap (`bwrap`) on Linux, and ProcessContainer on Windows. If your host cannot run the backend, sandboxed shell commands fail rather than falling back to unsandboxed execution.
 
@@ -116,7 +132,7 @@ Sandbox settings live under the `sandbox` key in `~/.copilot/settings.json` and 
 | `sandbox.addCurrentWorkingDirectory` | Grant read/write access to the working directory |
 | `sandbox.allowDevToolAccess` | Auto-grant the dev-tool caches and config that builds need |
 | `sandbox.allowBypass` | Allow a per-command escape hatch out of the sandbox |
-| `sandbox.gitAuth` / `sandbox.ghAuth` | Inject git and `gh` credentials into sandboxed commands |
+| `sandbox.auth.git` / `sandbox.auth.gh` | Inject git and `gh` credentials into sandboxed commands so authenticated git/`gh` operations keep working inside the sandbox. Tokens are never injected while the sandbox is disabled. |
 | `sandbox.sandboxMcpServers` / `sandbox.sandboxLspServers` | Also sandbox local (stdio) MCP and LSP servers |
 | `sandbox.userPolicy.filesystem.readwritePaths` / `readonlyPaths` / `deniedPaths` | Extra paths to grant or deny |
 | `sandbox.userPolicy.network.allowOutbound` / `allowLocalNetwork` | Control outbound and local-network access |
@@ -328,7 +344,7 @@ Deny rules take precedence over allow rules.
 
 4. More complex autonomous task:
  ```bash
- copilot --yolo -p "Create a Node.js project with package.json and a simple server"
+ copilot --yolo -p "Create a Node.js project in the current directory with package.json and a simple server. Do not create a subdirectory."
  ```
 
 5. Review what was created:
@@ -336,6 +352,9 @@ Deny rules take precedence over allow rules.
  ls -la
  cat package.json
  ```
+
+ > [!TIP]
+ > If `cat package.json` reports no such file, the agent placed the project in a subdirectory. Run `ls -la` first and `cat` the path it actually created.
 
 **When to Use YOLO:**
 - ✅ Inside Docker containers
@@ -605,17 +624,19 @@ copilot -p "Fix all linting errors" --allow-all-tools --no-ask-user
 | `--excluded-tools` | Denylist specific tools |
 | `--secret-env-vars` | Redact env var values from output |
 | `--no-ask-user` | Disable agent questions (fully autonomous) |
+| `--assisted-approval` | Review requests with the assisted-approval safety judge (requires experimental auto-approval; env: `COPILOT_ASSISTED_APPROVAL`) |
+| `--sandbox` | Start the session with command sandboxing already on |
 
 ### Runtime Slash Commands
 
 | Command | Description |
 |---------|-------------|
-| `/permissions [manual\|assisted\|allow-all\|show]` | Switch permission modes, or show the current one |
+| `/permissions [manual\|assisted\|allow-all\|show]` | Switch permission modes, or show the current one (`assisted` requires the experimental auto-approval feature) |
 | `/allow-all` | Enable all permissions (tools, paths, and URLs) |
 | `/reset-allowed-tools` | Reset the list of tools approved during the session |
 | `/add-dir <path>` | Add a trusted directory for the session (supports relative paths like `./src`, `../sibling`) |
 | `/list-dirs` | View accessible directories |
-| `/sandbox [enable\|disable]` | Show or change command sandboxing (requires experimental features) |
+| `/sandbox [enable\|disable]` | Show or change command sandboxing (registered when experimental features are on, or when a policy forces sandboxing on) |
 
 ## Summary
 
@@ -623,7 +644,8 @@ copilot -p "Fix all linting errors" --allow-all-tools --no-ask-user
 - ✅ Built-in tools include `bash`, `create`, `edit`, `view`, `glob`, `grep`, `web_fetch`, `web_search`, `task`, and `skill`
 - ✅ Permission rules match kinds — `shell`, `write`, `<mcp-server-name>`, and `url` — not tool names
 - ✅ One-time vs session-wide approval gives granular control
-- ✅ `/permissions` switches between `manual`, `assisted`, and `allow-all` modes
+- ✅ `/permissions` switches between `manual`, `assisted`, and `allow-all` modes; `assisted` needs the experimental auto-approval feature
+- ✅ `--assisted-approval` requests the same safety judge at launch (env: `COPILOT_ASSISTED_APPROVAL`)
 - ✅ Use `/reset-allowed-tools` to clear session approvals
 - ✅ `--allow-tool` and `--deny-tool` enable automation
 - ✅ Deny rules take precedence over allow rules
@@ -635,7 +657,7 @@ copilot -p "Fix all linting errors" --allow-all-tools --no-ask-user
 - ✅ `--no-ask-user` enables fully autonomous operation
 - ✅ Path permission dialog offers one-time approval
 - ✅ `/add-dir` accepts relative paths like `./src` and `../sibling`
-- ✅ Command sandboxing adds an OS-level restriction layer on top of tool and path permissions
+- ✅ Command sandboxing adds an OS-level restriction layer on top of tool and path permissions; start it with `--sandbox` or `/sandbox enable`
 - ✅ `~/.copilot/config.json` is managed automatically and holds credentials — never print or share it
 
 ## Next Steps
@@ -644,6 +666,6 @@ copilot -p "Fix all linting errors" --allow-all-tools --no-ask-user
 
 ## References
 
-- [Copilot CLI - GitHub Docs](https://docs.github.com/copilot/how-tos/copilot-cli)
-- [Responsible Use of Copilot CLI](https://docs.github.com/en/copilot/responsible-use/copilot-cli)
-- [Use Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-copilot-cli)
+- [Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli)
+- [Responsible Use of Copilot CLI](https://docs.github.com/en/copilot/responsible-use/agents)
+- [Use Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/overview)

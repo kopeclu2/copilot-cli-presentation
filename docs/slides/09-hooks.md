@@ -114,7 +114,7 @@ Personal hooks in `~/.copilot/hooks/` run regardless of trust
 |-------|----------|
 | **Repository** | any `*.json` in `<git root>/.github/hooks/` |
 | **Personal** | any `*.json` in `~/.copilot/hooks/` |
-| **Inline** | the `hooks` key in settings |
+| **Inline** | the `hooks` key — user-level in global `config.json`, repo-level in `settings.json` |
 
 Turn hooks off with `disableAllHooks`, or suppress individual ones with `disabledHooks`
 (policy hooks ignore both)

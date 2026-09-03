@@ -105,6 +105,9 @@ Override location: `COPILOT_HOME` env var
 
 Managed settings apply on top of yours and cannot be edited from the CLI
 
+**Model scopes** — `/model --repo` / `--local` set the repo default,
+`/config model` sets your user default, `/model plan` (or `--plan`) sets the plan-mode model
+
 ---
 
 ## Key Config Options
@@ -112,6 +115,9 @@ Managed settings apply on top of yours and cannot be edited from the CLI
 | Option | Default | Description |
 |--------|---------|-------------|
 | `model` | (varies) | AI model |
+| `defaultMode` | `"interactive"` | Mode new sessions start in |
+| `defaultPermissionMode` | `"manual"` | Permission mode new sessions start in |
+| `bannerStyle` | `"mona"` | Banner artwork: `mona` or `classic`; ignored when `banner` is `never` |
 | `compactPaste` | `true` | Collapse large pastes |
 | `copyOnSelect` | macOS only | Auto-copy selection |
 | `includeCoAuthoredBy` | `true` | Co-authored-by in commits |
@@ -137,6 +143,9 @@ Managed settings apply on top of yours and cannot be edited from the CLI
 | `COPILOT_EDITOR` | Editor for plans/prompts |
 | `COPILOT_PROVIDER_*` | Custom model provider (BYOK) |
 | `COPILOT_OTEL_*` / `OTEL_*` | OpenTelemetry monitoring |
+| `COPILOT_ASSISTED_APPROVAL` | Env form of `--assisted-approval` |
+| `COPILOT_MULTIPLEXER` | Override detected multiplexer: `tmux`, `herdr`, `none` |
+| `COPILOT_INLINE_IMAGES_HERDR` | Set `1` for inline images under herdr (once `inlineImages` is on) |
 | `PLAIN_DIFF` | Disable rich diffs |
 | `USE_BUILTIN_RIPGREP` | Set `false` to use PATH ripgrep |
 | `NO_COLOR` | Disable color output |
@@ -159,12 +168,16 @@ Managed settings apply on top of yours and cannot be edited from the CLI
 | `--no-custom-instructions` | Skip AGENTS.md |
 | `--screen-reader` | Accessibility mode |
 | `--plain-diff` | Disable rich diffs |
+| `--sandbox` | Enable command sandboxing at launch (needs `--experimental`) |
+| `--assisted-approval` | Route approvals via safety judge |
 | `--context <tier>` | Context window tier |
 | `--log-dir` / `--log-level` | Logging control |
 | `--plugin-dir` | Load local plugin |
 | `--max-ai-credits` | Session AI credit limit |
 | `--session-id` | Set/resume session ID |
 | `--remote-export` | Read-only web/mobile export |
+| `--extension-sdk-path <directory>` | Override bundled `@github/copilot-sdk` for extensions (invalid path → bundled) |
+| `--no-eager-powershell-resolution` | Disable background PowerShell prompt resolution on Windows |
 
 ---
 
@@ -210,6 +223,7 @@ Opt-in soft cap on AI credits for a session
 
 ```bash
 copilot --max-ai-credits 30     # minimum is 30
+copilot -p "..." --usage-output-file ./usage.json   # final usage as JSON
 ```
 
 ```
@@ -236,7 +250,7 @@ Open **Module 13** in `docs/workshop/13-configuration.md`
 - **Exercise 4** — Streamer mode & accessibility
 - **Exercise 5** — Team configuration
 - **Exercise 6** — Logging and debugging
-- **Exercise 7** — Session limits and AI credits
+- **Exercise 7** — Session limits, AI credits, and usage export
 
 ⏱️ You have **~14 minutes**
 

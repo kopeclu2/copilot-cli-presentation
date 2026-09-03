@@ -117,7 +117,7 @@ Three choices when Copilot wants to use a tool:
 | Mode | Behavior |
 |------|----------|
 | `manual` | Approve every request |
-| `assisted` | Auto-approve what a safety check deems safe |
+| `assisted` | Safety judge auto-approves what it deems safe |
 | `allow-all` | Auto-approve tools, paths, and URLs |
 | `show` | Report the current mode |
 
@@ -126,6 +126,8 @@ Three choices when Copilot wants to use a tool:
 /permissions allow-all
 /permissions show
 ```
+
+> `assisted` needs the experimental auto-approval feature; request the same judge at launch with `--assisted-approval` (env: `COPILOT_ASSISTED_APPROVAL`)
 
 ---
 
@@ -198,11 +200,15 @@ A **third layer** on top of tool and path permissions
 /sandbox disable
 ```
 
+```bash
+copilot --experimental --sandbox   # start a session with it already on
+```
+
 Shell commands run inside an OS-level sandbox — restricted **filesystem**, **network**, and **credentials**
 
-- Experimental: needs `--experimental` or `/settings experimental on`
+- Experimental: `/sandbox` registers with `--experimental`, `/settings experimental on`, or a policy that forces sandboxing on
 - Backends: Seatbelt (macOS), bubblewrap (Linux), ProcessContainer (Windows)
-- Configured under `sandbox.*` in `~/.copilot/settings.json`
+- Configured under `sandbox.*` in `~/.copilot/settings.json` (`sandbox.auth.git` / `sandbox.auth.gh` inject credentials)
 
 > `copilot help sandbox` has the full reference
 

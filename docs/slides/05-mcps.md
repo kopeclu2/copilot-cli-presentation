@@ -121,7 +121,7 @@ Optional: `"tools": ["*"]` (default), `"env": {}`, `"headers": {}`
 
 ## Built-in GitHub MCP
 
-**Already configured** — no setup needed
+**Already built in** — no setup needed
 
 ```
 > What are the open issues in this repository?
@@ -130,6 +130,8 @@ Optional: `"tools": ["*"]` (default), `"env": {}`, `"headers": {}`
 ```
 
 Copilot uses GitHub MCP tools automatically
+
+> It appears in the in-session `/mcp` view, not in `copilot mcp list`
 
 ---
 
@@ -152,7 +154,7 @@ Use shell commands or the interactive `/mcp` view:
 
 | Command | Action |
 |---------|--------|
-| `copilot mcp list` | List configured servers |
+| `copilot mcp list` | List configured servers (built-ins not shown) |
 | `copilot mcp get NAME` | View server details |
 | `copilot mcp add NAME -- COMMAND` | Add local stdio server |
 | `copilot mcp add --transport http NAME URL` | Add remote HTTP server |
@@ -193,6 +195,9 @@ copilot --enable-all-github-mcp-tools
 # Disable built-in servers
 copilot --disable-builtin-mcps
 copilot --disable-mcp-server "my-server"
+
+# Re-enable a disabled server for this run only
+copilot --enable-mcp-server "my-server"
 ```
 
 ---

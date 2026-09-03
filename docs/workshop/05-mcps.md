@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Completed Modules 1-5
+- Completed Modules 1-4
 - Understanding of JSON configuration
 - Node.js and npm installed
 
@@ -149,9 +149,12 @@ copilot --disable-builtin-mcps
 
 # Disable a specific MCP server by name
 copilot --disable-mcp-server "my-custom-server"
+
+# Re-enable a server that settings disable, for this run only
+copilot --enable-mcp-server "my-custom-server"
 ```
 
-Use `--add-github-mcp-tool "*"` or `--add-github-mcp-toolset "all"` to enable everything. The `--disable-mcp-server` flag works for any MCP server (built-in or configured), and can be used multiple times.
+Use `--add-github-mcp-tool "*"` or `--add-github-mcp-toolset "all"` to enable everything. The `--disable-mcp-server` flag works for any MCP server (built-in or configured), and can be used multiple times. Its counterpart, `--enable-mcp-server`, turns a server that your settings disable back on for that run only — nothing is persisted — and it is also repeatable.
 
 ## Hands-On Exercises
 
@@ -171,9 +174,9 @@ Use `--add-github-mcp-tool "*"` or `--add-github-mcp-toolset "all"` to enable ev
  /mcp
  ```
 
- > The MCP view lists configured servers by source, including user, workspace, plugin, and built-in servers.
+ > The in-session MCP view lists servers by source — user, workspace, plugin, and built-in — so the built-in GitHub MCP server shows up here.
 
-3. The GitHub MCP server is pre-configured. Try using it:
+3. The GitHub MCP server is built in and ready to use without any configuration. Try it:
  ```
  What are the open issues in this repository?
  ```
@@ -380,6 +383,8 @@ MCP server provides structured file access with defined boundaries. Any startup 
  ```bash
  copilot mcp list
  ```
+
+ > This command reports the servers you have configured — user, workspace, and plugin sources. On a clean machine it prints `No MCP servers configured.` along with `copilot mcp add` usage hints. That is expected: the built-in GitHub MCP server is not listed here. To see it, open the `/mcp` view inside a session.
 
 2. **Show details for a server:**
  ```bash
@@ -613,7 +618,7 @@ MCP server names (the keys in `"mcpServers"`) support dots (`.`), slashes (`/`),
 - ✅ MCP extends Copilot with custom tools and resources
 - ✅ Built-in GitHub MCP server provides repository access
 - ✅ GitHub MCP server tools/toolsets can be customized with `--add-github-mcp-tool`/`--add-github-mcp-toolset`
-- ✅ `--disable-builtin-mcps` and `--disable-mcp-server` for disabling servers
+- ✅ `--disable-builtin-mcps` and `--disable-mcp-server` for disabling servers, `--enable-mcp-server` to re-enable one for a single run
 - ✅ Local servers run on your machine for local resources
 - ✅ Remote servers connect to external services
 - ✅ `copilot mcp` commands manage servers without editing files
@@ -624,6 +629,7 @@ MCP server names (the keys in `"mcpServers"`) support dots (`.`), slashes (`/`),
 - ✅ Server names support npm-style identifiers with `.`, `/`, `@`
 - ✅ `--additional-mcp-config` loads temporary servers
 - ✅ MCP config loads from user, workspace, plugin, and built-in sources
+- ✅ `copilot mcp list` shows configured servers only; the built-in GitHub MCP server appears in the in-session `/mcp` view
 - ✅ `copilot mcp` CLI command for managing servers from the command line
 - ✅ `/mcp` takes subcommands: `list`, `show`, `add`, `edit`, `enable`, `disable`, `delete`, `reload`, `auth`, `search`
 - ✅ Remote server auto-retry on transient network failures
@@ -636,8 +642,8 @@ MCP server names (the keys in `"mcpServers"`) support dots (`.`), slashes (`/`),
 ## References
 
 - [Adding MCP Servers for Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers)
-- [About Model Context Protocol - GitHub Docs](https://docs.github.com/en/copilot/concepts/about-mcp)
-- [Extending Copilot Coding Agent with MCP - GitHub Docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/extend-coding-agent-with-mcp)
+- [About Model Context Protocol - GitHub Docs](https://docs.github.com/en/copilot/concepts/context/mcp)
+- [Configuring MCP Servers - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/configure-mcp-servers)
 - [GitHub MCP Registry](https://github.com/mcp)
 - [Model Context Protocol](https://modelcontextprotocol.io/)
 - [MCP Servers Repository](https://github.com/modelcontextprotocol/servers)

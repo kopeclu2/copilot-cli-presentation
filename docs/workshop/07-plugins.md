@@ -103,7 +103,7 @@ copilot plugins install --skill ./my-skill/SKILL.md
 copilot plugins install --skill --scope project ./my-skill/SKILL.md
 
 # Enable, disable, or remove by kind
-copilot plugins enable github --mcp
+copilot plugins enable github-mcp-server --mcp
 copilot plugins disable my-skill --skill
 copilot plugins remove spark@copilot-plugins
 
@@ -111,7 +111,7 @@ copilot plugins remove spark@copilot-plugins
 copilot plugins marketplace browse copilot-plugins
 ```
 
-Supported `--kind` values are `plugin`, `mcp`, `skill`, `instruction`, and `lsp`. Supported `--scope` values are `user`, `repository`, `organization`, `plugin`, `builtin`, and `unknown`. Use `--plugin` (the default), `--mcp`, or `--skill` on `enable`, `disable`, `remove`, and `install` to disambiguate names that collide across kinds.
+Supported `--kind` values are `plugin`, `mcp`, `skill`, `instruction`, and `lsp`. Supported `--scope` values are `user`, `session`, `repository`, `working-directory`, `organization`, `plugin`, `builtin`, and `unknown`. Use `--plugin` (the default), `--mcp`, or `--skill` on `enable`, `disable`, `remove`, and `install` to disambiguate names that collide across kinds.
 
 > [!NOTE]
 > MCP servers are installed from a policy-configured registry, which requires authentication and interactive secret entry, so `copilot plugins install --mcp` is not supported. Add them from the `/plugin` dashboard or `/mcp` instead.
@@ -542,6 +542,8 @@ You can find, evaluate, and contribute to the plugin ecosystem.
  ```
  Note how the output groups results by kind, then by configuration scope (user, repository, organization, plugin, built-in).
 
+ > A `[plugin-dir]` warning about a bundled plugin directory with no `plugin.json` or `SKILL.md` may print before the output. It is benign — the listing that follows is complete.
+
 2. Narrow the output to a single kind:
  ```bash
  copilot plugins list --kind mcp
@@ -555,10 +557,13 @@ You can find, evaluate, and contribute to the plugin ecosystem.
 
 4. Toggle a resource by kind. Disable the built-in GitHub MCP server, confirm it, then re-enable it:
  ```bash
- copilot plugins disable github --mcp
- copilot plugins list --kind mcp
- copilot plugins enable github --mcp
+ copilot plugins disable github-mcp-server --mcp
+ jq '.disabledMcpServers' ~/.copilot/settings.json
+ copilot plugins enable github-mcp-server --mcp
  ```
+
+ > [!NOTE]
+ > The built-in server's name is `github-mcp-server`. Confirm the change through `settings.json` rather than `copilot plugins list --kind mcp` — built-in servers are not included in that listing.
 
 5. Install a skill into the current project rather than your user account:
  ```bash
