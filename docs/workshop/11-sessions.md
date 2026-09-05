@@ -122,10 +122,12 @@ Recent session context is restored when you explicitly continue or resume the se
    /exit
    ```
 
-5. Start a new session with resume flag:
+5. Resume that session explicitly:
    ```bash
    copilot --resume
    ```
+
+   With no value, `--resume` opens the session picker — choose the session you noted in step 3. To jump straight back into the most recent session without the picker, use `copilot --continue` instead. You can also pass the value directly, for example `copilot --resume=<session-id>`.
 
 6. Verify you're in the same context:
    ```
@@ -133,7 +135,7 @@ Recent session context is restored when you explicitly continue or resume the se
    ```
 
 **Expected Outcome:**
-The `--resume` flag restores your previous session state.
+The `--resume` flag restores a previous session you select, and `--continue` reattaches to the most recent one.
 
 ### Exercise 3: Slash Commands for Session Control
 
@@ -335,11 +337,14 @@ You can run multiple focused sessions simultaneously.
 
 ### Exercise 7: Session Export and Sharing
 
-**Goal:** Export session transcripts for documentation or sharing.
+**Goal:** Export session transcripts for documentation or sharing, using the right mechanism for interactive and non-interactive runs.
+
+> [!IMPORTANT]
+> `--share` and `--share-gist` apply **only to non-interactive runs**, and they share **that run's own session** after it completes — they cannot export a conversation from an earlier session. To export an interactive session that is already in progress, use the `/share` slash command from inside it.
 
 **Steps:**
 
-1. Start a session and do meaningful work:
+1. Start an interactive session and do meaningful work:
    ```bash
    copilot
    ```
@@ -347,16 +352,23 @@ You can run multiple focused sessions simultaneously.
    Explain the architecture of a typical Express.js application
    ```
 
-2. Have a productive conversation building up knowledge.
-
-3. Export to a file:
-   ```bash
-   copilot --share ./session-export.md
+2. Have a productive conversation building up knowledge, then export it from inside the session:
+   ```
+   /share
    ```
 
-4. Or export to a GitHub Gist:
+   `/share` exports the session you are currently in to a markdown file, an HTML file, a GitHub gist, or a shareable GitHub link.
+
+3. Export a non-interactive run to a markdown file. The flag shares the session created by this same command once it finishes:
    ```bash
-   copilot --share-gist
+   copilot -p "Explain the architecture of a typical Express.js application" --share ./session-export.md
+   ```
+
+   Omit the path to accept the default of `./copilot-session-<id>.md`.
+
+4. Or share a non-interactive run to a secret GitHub gist:
+   ```bash
+   copilot -p "Explain the architecture of a typical Express.js application" --share-gist
    ```
 
 5. Review the exported markdown file:
@@ -364,11 +376,8 @@ You can run multiple focused sessions simultaneously.
    cat session-export.md
    ```
 
-> [!TIP]
-> If you're already inside an interactive session, you can use the `/share` slash command instead of the CLI flags above. It provides the same export functionality without leaving the session.
-
 **Expected Outcome:**
-Session transcript saved for future reference or sharing.
+You can export an in-progress interactive session with `/share`, and capture a non-interactive run's transcript with `--share` or `--share-gist`.
 
 ## Session Slash Commands Reference
 
@@ -382,8 +391,8 @@ Session transcript saved for future reference or sharing.
 | `/list-dirs` | List accessible directories | `/list-dirs` |
 | `/clear` | Abandon session and start fresh | `/clear` |
 | `/new [prompt]` | Start new conversation (old session stays backgrounded) | `/new` |
-| `/exit` | End session | `/exit` |
-| `/share` | Export session transcript (interactive alternative to `--share` flag) | `/share` |
+| `/exit` | End session; use `/exit print` to print the session after exiting alt screen | `/exit print` |
+| `/share` | Export the session you are currently in (markdown, HTML, gist, or shareable link) | `/share` |
 | `/share html` | Export session as self-contained interactive HTML file; shows `file://` URL and `Ctrl+X O` to open | `/share html` |
 | `/model` | Switch AI model | `/model` |
 | `/rewind` (alias `/undo`) | Rewind the last turn and revert file changes; also available via double-Esc | `/rewind` |
@@ -410,18 +419,20 @@ Session transcript saved for future reference or sharing.
 
 | Flag | Description |
 | --- | --- |
-| `--resume` | Resume last session |
-| `--continue` | Resume most recent session |
+| `--continue` | Resume the most recent session |
+| `-r, --resume[=value]` | Resume a previous session; with no value it opens the session picker. Optionally accepts an existing session ID, task ID, ID prefix (7+ hex chars), or session name (exact, case-insensitive). |
 | `-n, --name <name>` | Set a name for the new session |
 | `--connect[=sessionId]` | Connect directly to a remote session (optionally specify session ID or task ID) |
-| `--share PATH` | Export to markdown file |
-| `--share-gist` | Export to GitHub Gist |
+| `--remote` | Enable remote control of your session from GitHub web and mobile |
+| `--remote-export` | Export your session to GitHub web and mobile (read-only; does not enable remote control) |
+| `--share [path]` | Share the session to a markdown file after completion in non-interactive mode (default: `./copilot-session-<id>.md`) |
+| `--share-gist` | Share the session to a secret GitHub gist after completion in non-interactive mode |
 | `--silent` | Output only agent response (no stats) |
 
 ## Summary
 
 - ✅ Sessions maintain conversation history and context
-- ✅ Use `--resume` to continue previous sessions
+- ✅ Use `--continue` to reattach to the most recent session, and `--resume` to pick a previous one
 - ✅ `/clear` abandons the session; `/new` starts fresh while keeping the old session backgrounded
 - ✅ `/rewind` (alias `/undo`, or double-Esc) rewinds the last turn and reverts file changes
 - ✅ `/rename` auto-generates a session name from conversation history when called without arguments
@@ -429,7 +440,7 @@ Session transcript saved for future reference or sharing.
 - ✅ `/cwd` and `/add-dir` control file access scope; `/cwd` sets the working directory per session
 - ✅ `/session` subcommands inspect and prune session data (`info`, `checkpoints`, `files`, `prune`, `delete-all`)
 - ✅ Run multiple sessions in different terminals
-- ✅ Export sessions with `--share` for documentation or `/share html` for interactive HTML
+- ✅ Export an in-progress interactive session with `/share`, or a non-interactive run with `--share`; use `/share html` for interactive HTML
 - ✅ `/share html` shows `file://` URL and `Ctrl+X O` shortcut to open in browser
 - ✅ Remote control sessions via `--remote` or `/remote` — observe/control sessions remotely
 
@@ -439,5 +450,5 @@ Session transcript saved for future reference or sharing.
 
 ## References
 
-- [Use Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-copilot-cli)
+- [Use Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/overview)
 - [Slash Commands Cheat Sheet](https://github.blog/ai-and-ml/github-copilot/a-cheat-sheet-to-slash-commands-in-github-copilot-cli/)

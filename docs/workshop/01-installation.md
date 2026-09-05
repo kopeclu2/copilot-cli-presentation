@@ -116,10 +116,11 @@ copilot completion fish > ~/.config/fish/completions/copilot.fish
 **Expected Outcome:**
 
 ```
-GitHub Copilot CLI <version>
+GitHub Copilot CLI <version>.
+Run 'copilot update' to check for updates.
 ```
 
-> **Note:** The exact version number will reflect whichever release is current when you install. The format is the same regardless of installation method.
+> **Note:** The version line ends with a period, and a hint line pointing at `copilot update` may follow it. The exact version number reflects whichever release you installed. The format is the same regardless of installation method.
 
 ### Exercise 1b: Install via npm option
 
@@ -160,8 +161,11 @@ GitHub Copilot CLI <version>
 **Expected Outcome:**
 
 ```
-GitHub Copilot CLI <version>
+GitHub Copilot CLI <version>.
+Run 'copilot update' to check for updates.
 ```
+
+> **Note:** The update hint line may or may not appear; the version line is the part to check.
 
 ### Exercise 1c: Install via Homebrew (macOS) option
 
@@ -192,7 +196,8 @@ GitHub Copilot CLI <version>
 **Expected Outcome:**
 
 ```
-GitHub Copilot CLI <version>
+GitHub Copilot CLI <version>.
+Run 'copilot update' to check for updates.
 ```
 
 ### Exercise 1d: Windows Installation (WinGet)
@@ -220,7 +225,8 @@ GitHub Copilot CLI <version>
 **Expected Outcome:**
 
 ```
-GitHub Copilot CLI <version>
+GitHub Copilot CLI <version>.
+Run 'copilot update' to check for updates.
 ```
 
 ### Exercise 2: Authenticate with GitHub
@@ -366,7 +372,7 @@ This stores credentials separately from github.com, allowing you to connect to y
 
 ## References
 
-- [Install Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli)
-- [Copilot CLI - GitHub Docs](https://docs.github.com/copilot/how-tos/copilot-cli)
+- [Install Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli/set-up-copilot-cli/install-copilot-cli)
+- [Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli)
 - [Node.js Downloads](https://nodejs.org/en/download/)
 - [nvm - Node Version Manager](https://github.com/nvm-sh/nvm)

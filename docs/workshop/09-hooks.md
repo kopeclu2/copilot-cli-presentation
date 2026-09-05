@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Completed Modules 1-9
+- Completed Modules 1-8
 - Understanding of shell scripting (bash/PowerShell)
 - JSON basics
 - A **trusted** working folder — repository hooks only run in trusted folders
@@ -54,7 +54,10 @@ User Prompt → Session Start → Pre-Tool → Tool Execution → Post-Tool → 
 
 - **Repository hooks**: any `*.json` file in `<git root>/.github/hooks/` (for example `hooks.json`)
 - **Personal hooks**: any `*.json` file in `~/.copilot/hooks/`
-- **Inline hooks**: the `hooks` key in settings, keyed by event name, using the same schema
+- **Inline hooks**: the `hooks` key, keyed by event name, using the same schema as `.github/hooks/*.json`. In the global `config.json` these act as user-level hooks; in repository `settings.json` they act as repo-level hooks.
+
+> [!NOTE]
+> `~/.copilot/config.json` is managed automatically by the CLI and holds your authentication token, so do not hand-edit it to add inline hooks. Define your personal hooks as `*.json` files in `~/.copilot/hooks/`, and keep repository inline hooks in the repository's `settings.json` (edit it with `/settings --repo`).
 
 > [!IMPORTANT]
 > Repository hooks run only in **trusted folders**. The first time you launch Copilot in a directory, answer **Yes, and remember** at the trust prompt (or add the path to `trustedFolders`). In an untrusted folder, `.github/hooks/*.json` is discovered but never executed, and no error is shown. Personal hooks in `~/.copilot/hooks/` run regardless of folder trust.
@@ -878,7 +881,7 @@ All tool executions are logged with results:
 
 ## References
 
-- [Hooks Configuration - GitHub Docs](https://docs.github.com/en/copilot/reference/hooks-configuration)
+- [Hooks Reference - GitHub Docs](https://docs.github.com/en/copilot/reference/hooks-reference)
 - [About Hooks - GitHub Docs](https://docs.github.com/en/copilot/concepts/agents/hooks)
 - [Using Hooks with Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/use-hooks)
-- [Use Hooks - GitHub Docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/use-hooks)
+- [Use Hooks - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/use-hooks)

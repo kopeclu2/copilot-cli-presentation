@@ -9,6 +9,8 @@ Welcome to this hands-on workshop for mastering GitHub Copilot CLI! This worksho
 - Basic command-line experience
 - A code editor (VS Code recommended)
 - Git installed and configured
+- `jq` installed (used by several exercises to inspect JSON output)
+- GitHub CLI (`gh`) installed and authenticated (used by several exercises)
 
 ## Learning Objectives
 
@@ -150,8 +152,11 @@ npm --version
 # Check Git
 git --version
 
-# Check GitHub CLI (optional but recommended)
+# Check GitHub CLI (used by several exercises)
 gh --version
+
+# Check jq (used by several exercises to inspect JSON output)
+jq --version
 ```
 
 ### Ubuntu/Debian Quick Setup (example)

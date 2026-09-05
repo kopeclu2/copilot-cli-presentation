@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Completed Modules 1-10
+- Completed Modules 1-9
 - Understanding of LLM token limits
 - Active Copilot CLI session experience
 
@@ -131,7 +131,7 @@ When context reaches ~95% capacity, Copilot automatically compresses history in 
  ```
 
  You'll see:
- - Premium requests used in the current session
+ - AI credits used in the current session (premium requests are shown instead only on the legacy billing platform)
  - Session duration
  - Total lines of code edited
  - Token usage breakdown per model

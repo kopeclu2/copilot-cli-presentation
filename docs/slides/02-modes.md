@@ -105,6 +105,7 @@ copilot -p "summarize the README.md"
 ```bash
 # With tool permissions
 copilot -p "run tests and explain failures" --allow-tool 'shell'
+copilot -p "run git status" --allow-tool 'shell(git status)'
 ```
 
 ```bash
@@ -113,6 +114,9 @@ cat error.log | copilot -p "explain these errors"
 ```
 
 Perfect for: automation, CI/CD, scripting
+
+> Shell approval matches the **first-level subcommand** — `shell(git status)` allows exactly that, and `shell(git)` alone does not cover git subcommands
+> Use `shell(git:*)` for the whole family — the wildcard matches the command stem, so it covers `git push` but not `gitea`
 
 ---
 
@@ -216,6 +220,8 @@ copilot --agent rubber-duck
 - Design flaws
 - Missed edge cases
 
+> Built-in agents are designed for interactive sessions — pairing `--agent` with a `-p` run fails outright (custom agents do work with `-p`)
+
 ---
 
 ## Security Review Mode
@@ -247,6 +253,8 @@ Run prompts later or repeatedly:
 - `/every` — recurring schedule
 - Scheduled work appears in `/tasks`
 
+> `copilot help commands` does not list `/after` or `/every` even though they work — treat in-session `/help` as the authoritative list
+
 ---
 
 ## Tool Approval
@@ -274,6 +282,8 @@ Switch how much the agent may do on its own:
 /permissions allow-all   # auto-approve tools, paths, and URLs
 /permissions show        # show current status
 ```
+
+> `assisted` needs the experimental auto-approval feature — it is ignored when that feature is off or when policy blocks auto-approval
 
 Cap what a session may spend (opt-in, minimum **30** AI credits):
 

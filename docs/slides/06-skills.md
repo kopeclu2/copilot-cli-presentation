@@ -114,20 +114,25 @@ Optional frontmatter: `license`, `user-invocable`, `aliases`,
 
 ## Built-in Skills
 
-Two skills ship with the CLI and need **no configuration**:
+Three skills ship with the CLI and need **no configuration**:
 
 | Skill | What it does |
 |-------|--------------|
 | `customize-cloud-agent` | Configure the Copilot cloud agent environment — `copilot-setup-steps.yml`, preinstalled tools, runners, settings |
+| `discover-resources` | Find a public MCP server or skill for an unavailable capability — database access, PDF reports, cloud costs, diagrams |
 | `github-pr-media` | Upload images/video to GitHub's user attachments API and embed them in a PR description or comment |
 
 ```bash
-copilot skill list      # built-ins listed alongside your skills
+copilot skill list                  # omits discover-resources
+copilot plugins list --kind skill   # fuller inventory — all three
 ```
 
+> Audit with both: `copilot skill list` reports only `customize-cloud-agent`
+> and `github-pr-media`, so a built-in can look missing
+
 > Built-ins can't be deleted, but they can be disabled
-> (`copilot plugins disable <name> --skill`) or overridden by a
-> project/personal skill with the same name
+> (`copilot plugins disable <name> --skill`, or the `/plugin`
+> dashboard) or overridden by a project/personal skill of the same name
 
 ---
 

@@ -84,7 +84,18 @@ Use `--effort` as a shorthand alias for `--reasoning-effort` to control model re
 
 #### Resume Controls
 
-`--resume` accepts a session ID, task ID, ID prefix, or session name. Use `--continue` to resume the most recent session directly.
+`--resume` accepts a session ID, task ID, ID prefix, or session name, and opens the session picker when given no value. Use `--continue` to resume the most recent session directly.
+
+#### `copilot app` — Open the Copilot App
+
+Alongside the `/app` slash command available inside a session, `app` is also a shell subcommand:
+
+```bash
+# Open the GitHub Copilot app in the current directory
+copilot app
+```
+
+This is handy when you want to jump into the app from a terminal without first starting an interactive session.
 
 #### Remote Control Sessions
 
@@ -255,15 +266,23 @@ Environment variables customize Copilot behavior.
            COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
          run: |
            copilot -p "Review the changes in this PR and provide feedback" \
-             --allow-tool 'shell(git)' \
+             --allow-tool 'shell(git:*)' \
              --deny-tool 'write' \
+             --usage-output-file ./copilot-usage.json \
              --silent
  ```
 
+ > [!NOTE]
+ > Shell approval matches on a first-level subcommand, such as `git push` or `gh pr create`, so `shell(git)` on its own does not cover them. Use `shell(git:*)` to match every git command. The wildcard matches on the command stem, so `shell(git:*)` matches `git push` but not `gitea`.
+
+ > [!TIP]
+ > `--usage-output-file <file>` writes final usage statistics as JSON to the given path. In a pipeline you can upload it as an artifact or assert against it to keep automated runs within budget.
+
 2. **Pre-commit hook:**
 
+ Save the following as `.git/hooks/pre-commit` and make it executable:
+
  ```bash
- # .git/hooks/pre-commit
  #!/bin/bash
 
  # Run Copilot analysis on staged files
@@ -331,12 +350,15 @@ Copilot CLI integrated into automated workflows.
 2. **Tool control:**
 
  ```bash
- # Allow specific tools only
- copilot --available-tools 'shell,read'
+ # Make only these tools visible to the model
+ copilot --available-tools 'bash,view,glob,grep'
 
- # Exclude specific tools
- copilot --excluded-tools 'write,web_fetch'
+ # Hide specific tools from the model
+ copilot --excluded-tools 'create,edit,web_fetch'
  ```
+
+ > [!NOTE]
+ > `--available-tools` and `--excluded-tools` filter by **tool name** and decide which tools the model can see. They are distinct from `--allow-tool`/`--deny-tool`, which take permission rule kinds such as `shell(...)`, `write(...)`, `url(...)`, and `<mcp-server>(...)` and control approval prompts. See [Module 4: Tools & Permissions](04-tools.md) for the full tool list.
 
 3. **Model selection:**
 
@@ -351,7 +373,10 @@ Copilot CLI integrated into automated workflows.
 4. **Session control:**
 
  ```bash
- # Resume last session
+ # Resume the most recent session
+ copilot --continue
+
+ # Pick a previous session from the session picker
  copilot --resume
 
  # Use additional MCP config temporarily
@@ -624,7 +649,7 @@ Complex tasks are completed faster through parallel sub-agent execution with qua
  alias gst='git status'
 
  # Functions
- test-and-commit {
+ test-and-commit() {
  npm test && git commit -m "$1"
  }
  EOF
@@ -677,7 +702,11 @@ Complex tasks are completed faster through parallel sub-agent execution with qua
 
  ```bash
  copilot
- # Type ! to enter shell mode
+ ```
+
+ Inside the session, type `!` to enter shell mode, then run commands such as:
+
+ ```
  ! ls -la
  ! git status
  ! npm install
@@ -689,8 +718,11 @@ Complex tasks are completed faster through parallel sub-agent execution with qua
  # Set up environment
  export BASH_ENV=~/.copilot_project_env
  copilot --bash-env
+ ```
 
- # In session, use shell mode
+ Inside the session, use shell mode to confirm the environment is available:
+
+ ```
  ! echo $PROJECT_ROOT
  # Outputs: /workspace/myproject (from BASH_ENV)
 
@@ -938,14 +970,15 @@ Custom user settings for your workflow in `settings.json`, plus the LSP configur
 2. **Tool not working:**
 
  ```bash
- # Check if tool is allowed
- copilot -p "test" --available-tools
+ # Scope the run to a known-good set of tools by name
+ copilot -p "test" --available-tools 'bash,view'
 
- # Verify MCP servers
+ # Inspect the loaded environment and MCP servers
  copilot
  ```
 
  ```
+ /env
  /mcp
  ```
 
@@ -1295,15 +1328,16 @@ You can run deep-research workflows and extract insights from your session histo
 | `-p, --prompt` | Programmatic mode prompt |
 | `-i, --interactive` | Interactive mode with auto-executed prompt |
 | `--model` | Select AI model |
-| `--resume` | Resume last session (accepts session ID or task ID) |
 | `--continue` | Resume the most recent session |
+| `-r, --resume[=value]` | Resume a previous session; with no value it opens the session picker. Optionally accepts an existing session ID, task ID, ID prefix (7+ hex chars), or session name (exact, case-insensitive). |
 | `--yolo` / `--allow-all` | Allow all tools, paths, and URLs |
 | `--allow-tool` / `--deny-tool` | Allow/deny specific tools |
 | `--allow-url` / `--deny-url` | Allow/deny specific URLs |
 | `--silent` | Output only agent response (no stats) |
 | `--output-format` | Output as `text` or `json` (JSONL) |
-| `--share PATH` | Export to markdown |
-| `--share-gist` | Export to Gist |
+| `--share [path]` | Share the session to a markdown file after completion in non-interactive mode (default: `./copilot-session-<id>.md`) |
+| `--share-gist` | Share the session to a secret GitHub gist after completion in non-interactive mode |
+| `--usage-output-file` | Write final usage statistics as JSON to the specified file |
 | `--additional-mcp-config` | Add MCP config as inline JSON or an `@`-prefixed file path |
 | `--max-ai-credits` | Set a session AI credit limit |
 | `--session-id` | Resume an existing session/task by ID or set a new session UUID |
@@ -1386,8 +1420,8 @@ alias cop-safe='copilot --allow-tool "shell(cat)" --allow-tool "shell(grep)" --d
 # Full autonomy (careful!)
 alias cop-yolo='copilot --yolo'
 
-# Resume session
-alias cop-resume='copilot --resume'
+# Resume the most recent session
+alias cop-resume='copilot --continue'
 ```
 
 ## Summary
@@ -1436,8 +1470,8 @@ alias cop-resume='copilot --resume'
 ## References
 
 - [GitHub Copilot Documentation](https://docs.github.com/en/copilot)
-- [Copilot CLI - GitHub Docs](https://docs.github.com/copilot/how-tos/copilot-cli)
-- [Use Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/use-copilot-cli)
+- [Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli)
+- [Use Copilot CLI - GitHub Docs](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/overview)
 - [Copilot CLI Blog Posts](https://github.blog/tag/copilot/)
 - [GitHub Community Discussions](https://github.com/orgs/community/discussions)
 - [agentskills.io](https://agentskills.io/)

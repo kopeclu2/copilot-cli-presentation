@@ -134,12 +134,30 @@ Your Prompt → Orchestrator
  COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_PAT }}
  run: |
  copilot -p "Review PR changes" \
- --allow-tool 'shell(git)' \
+ --allow-tool 'shell(git:*)' \
  --deny-tool 'write' \
+ --usage-output-file ./copilot-usage.json \
  --silent
 ```
 
-Key flags for automation: `--silent`, `--allow-tool`, `--deny-tool`
+Key flags for automation: `--silent`, `--allow-tool`, `--deny-tool`, `--usage-output-file`
+
+> `shell(git:*)` matches every git subcommand — `shell(git)` alone does not
+
+---
+
+## Tool Visibility vs Permissions
+
+```bash
+# Only these tools are visible to the model
+copilot --available-tools 'bash,view,glob,grep'
+
+# Hide specific tools from the model
+copilot --excluded-tools 'create,edit,web_fetch'
+```
+
+> `--available-tools` / `--excluded-tools` filter by **tool name** — which tools the model can see
+> `--allow-tool` / `--deny-tool` take permission **rule kinds** like `shell(git:*)` and `write(path)`
 
 ---
 
@@ -153,6 +171,9 @@ Key flags for automation: `--silent`, `--allow-tool`, `--deny-tool`
 | `~/.copilot/lsp-config.json` | Language server definitions |
 
 ```bash
+# Open the GitHub Copilot app in the current directory (`/app` in-session)
+copilot app
+
 # Source custom env in shell sessions
 copilot --bash-env
 
